@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preventivi · GPN Lab</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #121316; --card: #1A1C21; --el: #23262D;
+    --testo: #ECEDEF; --sec: #8C8F98;
+    --pieno: #166534; --su-pieno: #FFFFFF; --luce: #22C55E;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--testo); font-family: Inter, sans-serif; font-size: 15px; min-height: 100vh; }
+  ::selection { background: var(--pieno); color: var(--su-pieno); }
+  button, input { font-family: inherit; }
+  button { cursor: pointer; border: 0; }
+  .num { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; }
+  .titolo { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; text-transform: uppercase; line-height: .95; }
+  .app { max-width: 720px; margin: 0 auto; padding: 20px 16px 48px; display: flex; flex-direction: column; gap: 20px; }
+  .vista { display: none; flex-direction: column; gap: 20px; }
+  .vista.attiva { display: flex; }
+
+  /* barra in alto */
+  .barra { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--sec); }
+  .barra .negozio { display: flex; align-items: center; gap: 8px; color: var(--testo); font-weight: 600; font-size: 14px; }
+  .barra .negozio i { width: 8px; height: 8px; border-radius: 50%; background: var(--luce); }
+  .barra button { background: transparent; color: var(--sec); font-size: 13px; }
+
+  /* parti comuni dei passi */
+  .testa { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 30px; }
+  .indietro { white-space: nowrap; background: transparent; color: var(--sec); font-size: 14px; padding: 4px 0; }
+  .indietro:hover { color: var(--testo); }
+  .contesto { display: inline-flex; align-items: center; gap: 8px; background: var(--card); padding: 6px 12px; border-radius: 99px; font-size: 13px; color: var(--luce); text-align: right; }
+  .contesto::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--luce); flex: none; }
+  .contesto.privato { color: var(--sec); }
+  .contesto.privato::before { background: var(--sec); }
+  .contesto b { color: var(--testo); font-weight: 600; }
+  .ctx-prezzo { color: var(--testo); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; }
+  .passi { display: flex; gap: 6px; }
+  .passi i { flex: 1; height: 4px; border-radius: 99px; background: var(--el); }
+  .passi i.fatto { background: var(--luce); }
+  .domanda .titolo { font-size: 34px; }
+  .domanda span { display: block; color: var(--sec); font-size: 14px; margin-top: 6px; }
+  .etichetta { font-size: 12px; color: var(--sec); text-transform: uppercase; letter-spacing: .08em; font-weight: 600; margin-bottom: 10px; }
+  .primario { width: 100%; background: var(--pieno); color: var(--su-pieno); padding: 18px; border-radius: 14px; font-weight: 700; font-size: 16px; transition: background .2s, color .2s; }
+  .primario:hover:not(:disabled) { filter: brightness(1.12); }
+  .primario:disabled { background: var(--el); color: var(--sec); cursor: default; }
+  .segmenti { display: flex; background: var(--card); border-radius: 14px; padding: 4px; gap: 4px; }
+  .segmenti button { flex: 1; background: transparent; color: var(--sec); padding: 12px 8px; border-radius: 10px; font-size: 14px; font-weight: 500; }
+  .segmenti button.on { background: var(--el); color: var(--testo); box-shadow: inset 0 0 0 2px var(--luce); }
+  .segmenti button:disabled { opacity: .4; cursor: not-allowed; }
+  .spiega { color: var(--sec); font-size: 13px; margin-top: 8px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { background: var(--card); color: var(--testo); padding: 12px 16px; border-radius: 12px; font-size: 14px; border: 2px solid transparent; }
+  .chip.on { border-color: var(--luce); color: var(--luce); }
+  .scelto-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--el); display: grid; place-items: center; flex: none; }
+  .sel .scelto-check { background: var(--luce); border-color: var(--luce); }
+  .sel .scelto-check::after { content: ''; width: 8px; height: 4px; border: 2px solid var(--bg); border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px,-1px); }
+
+  /* ===== 1 · BANCO ===== */
+  .saluto span { color: var(--sec); }
+  .saluto .titolo { font-size: 44px; margin-top: 4px; }
+  .nuovo { width: 100%; background: var(--pieno); color: var(--su-pieno); border-radius: 18px; padding: 22px 24px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+  .nuovo:hover { filter: brightness(1.12); }
+  .nuovo strong { display: block; font-size: 20px; }
+  .nuovo small { opacity: .8; font-size: 14px; }
+  .nuovo .piu { width: 48px; height: 48px; border-radius: 14px; background: rgba(255,255,255,.14); display: grid; place-items: center; font-size: 28px; flex: none; }
+  .lista { background: var(--card); border-radius: 18px; padding: 8px 20px; }
+  .lista-testa { display: flex; justify-content: space-between; align-items: center; padding: 12px 0 4px; gap: 8px; }
+  .lista-testa h3 { font-size: 12px; color: var(--sec); text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+  .filtri { display: flex; gap: 4px; }
+  .filtri button { background: transparent; color: var(--sec); font-size: 12px; padding: 4px 10px; border-radius: 99px; }
+  .filtri button.on { background: var(--el); color: var(--testo); }
+  .riga { width: 100%; display: grid; grid-template-columns: 1fr auto auto; gap: 16px; align-items: center; padding: 14px 0; border-top: 1px solid var(--el); background: transparent; color: var(--testo); text-align: left; }
+  .riga:first-child { border-top: 0; }
+  .riga:hover .chi strong { color: var(--luce); }
+  .chi strong { display: block; font-weight: 600; }
+  .chi small { display: block; color: var(--sec); margin-top: 2px; }
+  .tag { font-size: 12px; padding: 4px 10px; border-radius: 99px; background: var(--el); color: var(--sec); display: inline-flex; align-items: center; gap: 6px; }
+  .tag.ingrosso { color: var(--luce); }
+  .tag.ingrosso::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--luce); }
+  .riga .num { font-size: 22px; text-align: right; }
+  .riga .num small { display: block; font-family: Inter; font-weight: 400; font-size: 12px; color: var(--sec); }
+  .vuota { color: var(--sec); padding: 20px 0; text-align: center; font-size: 14px; }
+
+  /* ===== 2 · QUANTITÀ ===== */
+  .centro { display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center; padding: 16px 0; }
+  .stepper { display: flex; align-items: center; gap: 24px; }
+  .stepper button { width: 64px; height: 64px; border-radius: 16px; background: var(--card); color: var(--testo); font-size: 32px; }
+  .stepper button:hover { background: var(--el); }
+  .stepper input { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 140px; line-height: 1; width: 240px; text-align: center; background: transparent; border: 0; color: var(--testo); outline: none; border-bottom: 2px solid transparent; -moz-appearance: textfield; }
+  .stepper input:focus { border-bottom-color: var(--luce); }
+  .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .rapidi { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .rapidi button { background: var(--card); color: var(--sec); padding: 8px 14px; border-radius: 99px; font-size: 14px; }
+  .rapidi button:hover { color: var(--testo); }
+  .rapidi .azzera { background: transparent; text-decoration: underline; text-underline-offset: 3px; }
+  .stepper input::placeholder { color: var(--el); }
+  .soglia { width: 100%; max-width: 420px; height: 6px; background: var(--el); border-radius: 99px; position: relative; margin-top: 8px; }
+  .soglia .riempi { position: absolute; inset: 0 auto 0 0; background: var(--sec); border-radius: 99px; transition: width .2s; }
+  .soglia.ingrosso .riempi { background: var(--luce); }
+  .soglia .tacca { position: absolute; left: 30%; top: -6px; width: 2px; height: 18px; background: var(--sec); }
+  .legenda { width: 100%; max-width: 420px; position: relative; height: 16px; color: var(--sec); font-size: 12px; }
+  .legenda span { position: absolute; }
+  .esito { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 99px; background: var(--card); font-weight: 600; }
+  .esito.ingrosso { color: var(--luce); }
+  .esito.ingrosso::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--luce); }
+  .centro .primario { max-width: 420px; }
+
+  /* ===== 3 · CAPO ===== */
+  .cerca { width: 100%; background: var(--card); border: 2px solid transparent; border-radius: 14px; padding: 14px 16px 14px 44px; color: var(--testo); font-size: 15px; outline: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%238C8F98' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3Cpath d='M13 13l4 4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: 16px center; }
+  .cerca:focus { border-color: var(--luce); }
+  .cerca::placeholder { color: var(--sec); }
+  .listino { background: var(--card); border-radius: 16px; padding: 4px 16px; }
+  .voce { width: 100%; display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; padding: 14px 0; border-top: 1px solid var(--el); background: transparent; color: var(--testo); text-align: left; }
+  .voce:first-child { border-top: 0; }
+  .voce .chi strong { font-size: 16px; }
+  .voce .prezzo { text-align: right; }
+  .voce .prezzo .num { font-size: 26px; display: block; line-height: 1; }
+  .voce .prezzo small { color: var(--sec); font-size: 12px; }
+  .voce.sel .chi strong, .voce.sel .prezzo .num { color: var(--luce); }
+
+  /* ===== 4 · STAMPA ===== */
+  .pacchetti { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .pacchetto { background: var(--card); border: 2px solid transparent; border-radius: 16px; padding: 16px; text-align: left; color: var(--testo); display: flex; gap: 14px; align-items: center; }
+  .pacchetto.on { border-color: var(--luce); }
+  .pacchetto svg { width: 56px; height: 64px; flex: none; }
+  .corpo { fill: var(--el); stroke: var(--sec); stroke-width: 1.5; }
+  .pacchetto .stampa { fill: var(--sec); }
+  .pacchetto.on .stampa { fill: var(--luce); }
+  .pacchetto .dietro { fill: none; stroke: var(--sec); stroke-dasharray: 3 2; }
+  .pacchetto.on .dietro { stroke: var(--luce); }
+  .pacchetto strong { display: block; font-size: 15px; }
+  .pacchetto small { color: var(--sec); display: block; margin-top: 2px; }
+  .pacchetto .num { font-size: 20px; margin-top: 6px; display: block; }
+  .pacchetto .num small { display: inline; font-family: Inter; font-size: 12px; font-weight: 400; }
+  .link { background: transparent; color: var(--sec); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; align-self: center; }
+  .link:hover { color: var(--testo); }
+  .mini-stepper { display: inline-flex; align-items: center; gap: 4px; background: var(--card); border-radius: 12px; padding: 4px; }
+  .mini-stepper button { width: 40px; height: 40px; border-radius: 10px; background: var(--el); color: var(--testo); font-size: 20px; }
+  .mini-stepper .num { font-size: 26px; min-width: 48px; text-align: center; }
+  .conto { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--card); border-radius: 16px; padding: 14px 16px; position: sticky; bottom: 12px; box-shadow: 0 -8px 24px var(--bg); }
+  .conto small { display: block; color: var(--sec); font-size: 12px; }
+  .conto .tot { font-size: 30px; line-height: 1; }
+  .conto .unit { color: var(--sec); font-size: 13px; margin-top: 2px; }
+  .conto .primario { width: auto; padding: 16px 20px; white-space: nowrap; }
+  .lampo { animation: lampo .35s; }
+  @keyframes lampo { from { color: var(--luce); } to { color: var(--testo); } }
+
+  /* ===== 5 · RIEPILOGO ===== */
+  .scala { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .gradino { background: var(--card); border: 2px solid transparent; border-radius: 14px; padding: 14px 12px; text-align: left; color: var(--testo); }
+  .gradino.attuale { border-color: var(--luce); }
+  .gradino .q { font-size: 13px; color: var(--sec); }
+  .gradino.attuale .q { color: var(--luce); font-weight: 600; }
+  .gradino .num { font-size: 26px; display: block; margin: 4px 0; }
+  .gradino .diff { font-size: 12px; color: var(--sec); }
+  .gradino .diff.giu { color: var(--luce); }
+  .r-corpo { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  .r-sinistra { display: flex; flex-direction: column; gap: 16px; }
+  .campo input { width: 100%; background: var(--card); border: 2px solid transparent; border-radius: 14px; padding: 14px 16px; color: var(--testo); font-size: 16px; outline: none; }
+  .campo input:focus { border-color: var(--luce); }
+  .campo input::placeholder { color: var(--sec); }
+  .canali { display: flex; flex-direction: column; gap: 8px; }
+  .canale { display: flex; align-items: center; gap: 12px; background: var(--card); color: var(--testo); padding: 14px 16px; border-radius: 12px; font-size: 15px; text-align: left; border: 2px solid transparent; }
+  .canale.on { border-color: var(--luce); }
+  .canale svg { width: 20px; height: 20px; fill: none; stroke: var(--sec); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  .canale.on svg { stroke: var(--luce); }
+  .foglio { background: #F6F6F4; color: #1A1C21; border-radius: 10px; padding: 20px; font-size: 13px; line-height: 1.5; box-shadow: 0 12px 32px rgba(0,0,0,.4); }
+  .foglio .intest { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-bottom: 12px; border-bottom: 2px solid #166534; margin-bottom: 12px; }
+  .foglio .intest b { font-size: 15px; }
+  .foglio .intest span { color: #6B6E76; font-size: 11px; text-align: right; }
+  .foglio .per { color: #6B6E76; font-size: 11px; }
+  .foglio .per b { color: #1A1C21; font-size: 14px; display: block; min-height: 21px; }
+  .foglio table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12px; }
+  .foglio td { padding: 5px 0; border-bottom: 1px solid #E2E2DE; vertical-align: top; }
+  .foglio td:last-child { text-align: right; white-space: nowrap; padding-left: 8px; }
+  .foglio .tot { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .foglio .tot .num { font-size: 30px; color: #166534; }
+  .foglio .iva { text-align: right; color: #6B6E76; font-size: 11px; }
+  .foglio .piede { color: #6B6E76; font-size: 10px; margin-top: 10px; }
+
+  /* avviso in basso */
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 120px); background: var(--card); border: 1px solid var(--el); color: var(--testo); padding: 14px 20px; border-radius: 14px; display: flex; align-items: center; gap: 10px; transition: transform .25s; box-shadow: 0 12px 32px rgba(0,0,0,.5); z-index: 5; max-width: calc(100% - 32px); }
+  .toast::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--luce); flex: none; }
+  .toast.su { transform: translate(-50%, 0); }
+
+
+  /* più capi */
+  .voce { cursor: pointer; }
+  .voce .pezzi { grid-column: 2 / -1; display: flex; align-items: center; gap: 12px; color: var(--sec); font-size: 13px; cursor: default; }
+  .mini-stepper input { width: 56px; background: transparent; border: 0; color: var(--testo); text-align: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 22px; outline: none; -moz-appearance: textfield; }
+  .mini-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .voce .mini-stepper { background: var(--el); }
+  .voce .mini-stepper button { width: 34px; height: 34px; background: var(--card); font-size: 18px; }
+  .giro { display: flex; flex-direction: column; gap: 10px; }
+  .giro-capi { display: flex; gap: 8px; flex-wrap: wrap; }
+  .giro-capi button { background: var(--card); color: var(--sec); padding: 8px 14px; border-radius: 99px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+  .giro-capi button.fatto::before { content: '✓'; color: var(--luce); }
+  .giro-capi button.qui { background: var(--testo); color: var(--bg); font-weight: 600; }
+  .copia { background: var(--card); border: 2px dashed var(--el); color: var(--testo); border-radius: 14px; padding: 14px 16px; text-align: left; display: flex; flex-direction: column; gap: 2px; }
+  .copia:hover { border-color: var(--luce); }
+  .copia b { font-weight: 600; }
+  .copia b::before { content: '↻ '; color: var(--luce); }
+  .copia small { color: var(--sec); }
+  .spinta { background: var(--card); border-radius: 14px; padding: 14px 16px; color: var(--sec); font-size: 14px; line-height: 1.5; }
+  .spinta b { color: var(--testo); }
+  .spinta .giu { color: var(--luce); }
+  .r-capi { display: flex; flex-direction: column; gap: 8px; }
+  .r-capo { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--card); color: var(--testo); padding: 12px 16px; border-radius: 12px; text-align: left; }
+  .r-capo:hover { background: var(--el); }
+  .r-capo strong { display: block; font-size: 14px; }
+  .r-capo small { color: var(--sec); font-size: 12px; }
+  .r-capo .num { font-size: 20px; white-space: nowrap; }
+  .foglio .dett { color: #6B6E76; font-size: 11px; }
+
+  /* ingresso demo */
+  .ingresso { min-height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; }
+  .ingresso .titolo { font-size: 72px; }
+  .ingresso p { color: var(--sec); }
+  .ingresso .primario { max-width: 320px; margin-top: 16px; }
+  .ingresso small { color: var(--sec); font-size: 12px; }
+  .firma { text-align: center; color: var(--sec); font-size: 12px; }
+  .firma b { color: var(--testo); font-weight: 600; }
+  .firma i { color: var(--luce); font-style: normal; }
+  .solo-dentro { display: none; }
+  body.dentro .solo-dentro { display: flex; }
+
+  @media (max-width: 560px) {
+    .ctx-tutto { display: none; }
+    .saluto .titolo { font-size: 36px; }
+    .ctx-nome { display: none; }
+    .contesto { white-space: nowrap; }
+    .riga { grid-template-columns: 1fr auto; }
+    .riga .tag { display: none; }
+    .stepper { gap: 12px; }
+    .stepper input { font-size: 96px; width: 150px; }
+    .pacchetti, .r-corpo { grid-template-columns: 1fr; }
+    .scala { grid-template-columns: 1fr 1fr; }
+    .domanda .titolo { font-size: 28px; }
+    .conto .tot { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-wa" viewBox="0 0 24 24"><path d="M4 20l1.3-4A8 8 0 1112 20a8 8 0 01-4-1z"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
+  <symbol id="i-pdf" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13h6M9 17h6"/></symbol>
+</svg>
+
+<div class="app">
+  <div class="barra solo-dentro">
+    <span class="negozio"><i></i>Stamperia Demo</span>
+    <button onclick="esci()">Esci</button>
+  </div>
+
+  <!-- ============ 0 · INGRESSO ============ -->
+  <section class="vista" id="v-ingresso">
+    <div class="ingresso">
+      <div class="titolo">Preventivi</div>
+      <p>Stamperia Demo · versione di prova con dati di esempio</p>
+      <button class="primario" onclick="entra()">Entra come Demo</button>
+      <small>Nessun dato vero: capi, prezzi e clienti sono inventati.</small>
+    </div>
+    <div class="firma">Powered by <b>gpn<i>·</i>lab</b></div>
+  </section>
+
+  <!-- ============ 1 · BANCO ============ -->
+  <section class="vista" id="v-banco">
+    <div class="saluto"><span id="oggi"></span><div class="titolo">Ciao Demo</div></div>
+    <button class="nuovo" onclick="nuovoPreventivo()">
+      <span><strong>Nuovo preventivo</strong><small>Ingrosso o privato lo decide la quantità</small></span>
+      <span class="piu">+</span>
+    </button>
+    <div class="lista">
+      <div class="lista-testa">
+        <h3>Ultimi preventivi</h3>
+        <div class="filtri" id="filtri">
+          <button class="on" data-f="tutti">Tutti</button>
+          <button data-f="ingrosso">Ingrosso</button>
+          <button data-f="privato">Privati</button>
+        </div>
+      </div>
+      <div id="righe"></div>
+    </div>
+    <button class="link" onclick="azzera()" style="font-size:12px">Ripristina i preventivi di esempio</button>
+  </section>
+
+  <!-- ============ 2 · QUANTITÀ ============ -->
+  <section class="vista" id="v-quantita">
+    <div class="testa"><button class="indietro" onclick="vai('banco')">← Annulla</button></div>
+    <div class="passi" data-passo="1"></div>
+    <div class="centro">
+      <div style="color:var(--sec);font-size:16px">Quanti pezzi in tutto servono al cliente?</div>
+      <div class="stepper">
+        <button onclick="setQ(P.q - 1)" aria-label="Meno">−</button>
+        <input type="number" id="q" min="0" inputmode="numeric" placeholder="0" aria-label="Pezzi">
+        <button onclick="setQ(P.q + 1)" aria-label="Più">+</button>
+      </div>
+      <div class="rapidi">
+        <button onclick="setQ(P.q + 10)">+10</button><button onclick="setQ(P.q + 30)">+30</button>
+        <button onclick="setQ(P.q + 50)">+50</button><button onclick="setQ(P.q + 100)">+100</button>
+        <button class="azzera" onclick="setQ(0); qIn.focus()">Azzera</button>
+      </div>
+      <div class="soglia" id="soglia"><div class="riempi" id="riempi"></div><div class="tacca"></div></div>
+      <div class="legenda"><span style="left:0">1</span><span style="left:30%;transform:translateX(-50%)">30 · ingrosso</span><span style="right:0">100+</span></div>
+      <div class="esito" id="esito"></div>
+      <button class="primario" id="avanti-q" onclick="vai('capo')">Avanti: scegli i capi →</button>
+    </div>
+  </section>
+
+  <!-- ============ 3 · CAPI ============ -->
+  <section class="vista" id="v-capo">
+    <div class="testa"><button class="indietro" onclick="vai('quantita')">← Pezzi</button><span class="contesto" id="ctx-capo"></span></div>
+    <div class="passi" data-passo="2"></div>
+    <div class="domanda"><div class="titolo">Che capi?</div><span>Anche più di uno. Prezzo del capo al pezzo, stampa esclusa.</span></div>
+    <input class="cerca" id="cerca" placeholder="Cerca: felpa, polo, 330…">
+    <div class="listino" id="listino"></div>
+    <div class="vuota" id="nessuno" style="display:none">Nessun capo trovato</div>
+    <button class="primario" id="avanti-capo" onclick="iniziaStampe()" disabled>Scegli almeno un capo</button>
+  </section>
+
+  <!-- ============ 4 · STAMPA (un capo alla volta) ============ -->
+  <section class="vista" id="v-stampa">
+    <div class="testa"><button class="indietro" id="indietro-stampa" onclick="stampaIndietro()">← Capi</button><span class="contesto" id="ctx-stampa"></span></div>
+    <div class="passi" data-passo="3"></div>
+    <div class="giro" id="giro"></div>
+    <div class="domanda"><div class="titolo" id="stampa-titolo">Che stampa?</div></div>
+    <button class="copia" id="copia" onclick="copiaStampa()"></button>
+    <div><div class="etichetta">Tecnica</div><div class="segmenti" id="tecniche"></div><div class="spiega" id="tecnica-nota"></div></div>
+
+    <div id="modo-pacchetti" style="display:flex;flex-direction:column;gap:16px">
+      <div class="pacchetti" id="pacchetti"></div>
+      <button class="link" onclick="R().mano = true; disegnaStampa()">Altra combinazione: scegli posizioni a mano</button>
+    </div>
+    <div id="modo-mano" style="display:none;flex-direction:column;gap:20px">
+      <div><div class="etichetta">Posizioni <span style="text-transform:none;letter-spacing:0">· anche più di una</span></div><div class="chips" id="posizioni"></div></div>
+      <div id="grandezze" style="display:flex;flex-direction:column;gap:16px"></div>
+      <button class="link" onclick="R().mano = false; disegnaStampa()">← Torna ai pacchetti</button>
+    </div>
+    <div id="colori"></div>
+    <div class="conto">
+      <div><small id="conto-lbl"></small><div class="num tot" id="conto-tot"></div><div class="unit" id="conto-unit"></div></div>
+      <button class="primario" id="avanti-stampa" onclick="stampaAvanti()">Riepilogo →</button>
+    </div>
+  </section>
+
+  <!-- ============ 5 · RIEPILOGO ============ -->
+  <section class="vista" id="v-riepilogo">
+    <div class="testa"><button class="indietro" onclick="P.i = P.righe.length - 1; vai('stampa')">← Stampa</button><span class="contesto" id="ctx-riep"></span></div>
+    <div class="passi" data-passo="4"></div>
+    <div class="domanda"><div class="titolo">Manda il preventivo</div></div>
+    <div id="scala-box">
+      <div class="etichetta">Stesso ordine, altre quantità · tocca per cambiare</div>
+      <div class="scala" id="scala"></div>
+    </div>
+    <div class="spinta" id="spinta"></div>
+    <div class="r-corpo">
+      <div class="r-sinistra">
+        <div>
+          <div class="etichetta">Capi</div>
+          <div class="r-capi" id="r-capi"></div>
+        </div>
+        <div class="campo"><div class="etichetta">Cliente</div><input id="cliente" placeholder="Nome o azienda"></div>
+        <div>
+          <div class="etichetta">Come lo mando</div>
+          <div class="canali" id="canali"></div>
+        </div>
+        <button class="primario" id="salva" onclick="salva()">Salva</button>
+      </div>
+      <div>
+        <div class="etichetta">Cosa vede il cliente</div>
+        <div class="foglio" id="foglio"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== DATI FINTI (solo per provare) ===================== */
+const SOGLIA = 30;
+const CAPI = [ // nome, modello, prezzo base del capo (ingrosso, 50 pezzi)
+  ['Maglietta', 'Leggera 150 g', 3.90], ['Maglietta', 'Classica 190 g', 4.90], ['Maglietta', 'Pesante 240 g', 6.50],
+  ['Polo', 'Piqué 210 g', 9.50], ['Canotta', 'Sportiva 160 g', 3.50], ['Camicia', 'Oxford', 15.90],
+  ['Felpa', 'Girocollo 280 g', 10.90], ['Felpa', 'Cappuccio 330 g', 13.50], ['Felpa con zip', 'Cappuccio 330 g', 16.90],
+  ['Pantaloni tuta', 'Felpati 300 g', 12.90], ['Cappellino', 'Baseball', 3.50], ['Shopper', 'Cotone 140 g', 1.90],
+].map(([nome, modello, base], i) => ({ id: i, nome, modello, base }));
+// sconto sul capo per scaglione (sui pezzi TOTALI dell'ordine); i privati pagano il capo +50%
+const SCAGLIONI = [[30, 1.40], [50, 0], [100, -1.50], [300, -2.50]];
+const TECNICHE = { nessuna: 'Nessuna', dtf: 'DTF', seri: 'Serigrafia', ricamo: 'Ricamo' };
+const POS = { cuore: 'Lato cuore', petto: 'Centro petto', retro: 'Retro', manica: 'Manica' };
+const GRAND = { S: 'Piccola', M: 'Media', L: 'Grande' };
+const STAMPA = { dtf: { S: 1.5, M: 2.5, L: 3.5 }, seri: { S: 0.9, M: 1.4, L: 2.0 }, ricamo: { S: 3.0, M: 5.5, L: 9.0 } };
+const SERI_COLORE = 0.4, SERI_TELAIO = 25;
+const PACCHETTI = [
+  { nome: 'Logo sul cuore',        dett: 'Piccola davanti',              pos: { cuore: 'S' },            dis: '<rect class="stampa" x="34" y="20" width="9" height="8" rx="1.5"/>' },
+  { nome: 'Grande davanti',        dett: 'Centro petto, grande',          pos: { petto: 'L' },            dis: '<rect class="stampa" x="17" y="22" width="22" height="20" rx="2"/>' },
+  { nome: 'Cuore + grande dietro', dett: 'Piccola davanti, grande retro', pos: { cuore: 'S', retro: 'L' }, dis: '<rect class="stampa" x="34" y="20" width="9" height="8" rx="1.5"/><rect class="dietro" x="17" y="22" width="22" height="20" rx="2"/>' },
+  { nome: 'Solo dietro',           dett: 'Retro, grande',                 pos: { retro: 'L' },            dis: '<rect class="dietro" x="17" y="22" width="22" height="20" rx="2"/>' },
+];
+const riga = (capo, q, tecnica, pos, colori = 1) => ({ capo, q, tecnica, colori, pos, pacchetto: -1, mano: false });
+const ESEMPI = [
+  { cliente: 'ASD Volley Esempio', quando: Date.now() - 3600e3, righe: [riga(7, 60, 'dtf', { cuore: 'S', retro: 'L' }), riga(1, 60, 'dtf', { cuore: 'S', retro: 'L' })] },
+  { cliente: 'Cliente al banco', quando: Date.now() - 7200e3, righe: [riga(1, 3, 'dtf', { petto: 'L' })] },
+  { cliente: 'Ditta Esempio Srl', quando: Date.now() - 86400e3, righe: [riga(3, 60, 'ricamo', { cuore: 'S' })] },
+];
+
+/* ===================== CONTI ===================== */
+const euro = v => v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' €';
+const ingrosso = tot => tot >= SOGLIA;
+const conStampa = r => r.tecnica && r.tecnica !== 'nessuna';
+const totPezzi = p => p.righe.reduce((s, r) => s + r.q, 0);
+const nomeCapo = r => `${CAPI[r.capo].nome} ${CAPI[r.capo].modello.toLowerCase()}`;
+function prezzoCapo(capo, tot) {
+  if (!ingrosso(tot)) return Math.round(capo.base * 1.5 * 10) / 10;
+  let delta = 0; for (const [s, d] of SCAGLIONI) if (tot >= s) delta = d;
+  return Math.max(0.5, capo.base + delta);
+}
+// una riga (un capo); tot = pezzi totali dell'ordine (decide scaglione e ingrosso)
+function calcolaRiga(r, tot, q = r.q) {
+  let stampa = 0, fisso = 0;
+  if (conStampa(r)) for (const g of Object.values(r.pos)) {
+    stampa += STAMPA[r.tecnica][g];
+    if (r.tecnica === 'seri') { stampa += SERI_COLORE * (r.colori - 1); fisso += SERI_TELAIO * r.colori; }
+  }
+  const capo = prezzoCapo(CAPI[r.capo], tot), pezzo = capo + stampa;
+  return { capo, stampa, pezzo, fisso, totale: pezzo * q + fisso };
+}
+function calcolaOrdine(p) {
+  const tot = totPezzi(p), righe = p.righe.map(r => calcolaRiga(r, tot));
+  return { tot, righe, totale: righe.reduce((s, c) => s + c.totale, 0) };
+}
+const descrStampa = r => !conStampa(r) ? 'senza stampa' : Object.entries(r.pos).map(([k, g]) => `${POS[k].toLowerCase()} ${GRAND[g].toLowerCase()}`).join(' + ');
+
+/* ===================== STATO ===================== */
+let P; // preventivo in lavorazione: { q, righe: [...], i: capo corrente, cliente, canale, indice }
+const R = () => P.righe[P.i];
+const KEY = 'preventivi-prova-2';
+let salvati;
+try { salvati = JSON.parse(localStorage.getItem(KEY)) || ESEMPI.slice(); } catch (e) { salvati = ESEMPI.slice(); }
+function memorizza() { try { localStorage.setItem(KEY, JSON.stringify(salvati)); } catch (e) {} }
+function azzera() { salvati = ESEMPI.slice(); memorizza(); vai('banco'); avviso('Preventivi di prova ripristinati'); }
+const vuoto = () => ({ q: 0, righe: [], i: 0, cliente: '', canale: 'wa', indice: null });
+
+/* ===================== NAVIGAZIONE ===================== */
+function vai(v) {
+  document.querySelectorAll('.vista').forEach(s => s.classList.toggle('attiva', s.id === 'v-' + v));
+  document.body.classList.toggle('dentro', v !== 'ingresso');
+  ({ ingresso: () => {}, banco: disegnaBanco, quantita: disegnaQuantita, capo: disegnaCapo, stampa: disegnaStampa, riepilogo: disegnaRiepilogo })[v]();
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll('.passi').forEach(el => el.innerHTML = [1, 2, 3, 4].map(i => `<i class="${i <= +el.dataset.passo ? 'fatto' : ''}"></i>`).join(''));
+function cartellino(el, tot, conCapo) {
+  el.className = 'contesto' + (ingrosso(tot) ? '' : ' privato');
+  el.innerHTML = (conCapo ? `<span class="ctx-nome"><b>${nomeCapo(conCapo)}</b> · </span><span class="ctx-prezzo">${euro(prezzoCapo(CAPI[conCapo.capo], tot))}/pz</span> · <b>${conCapo.q} pz</b> ` + (P.righe.length > 1 ? '· ' : '') : '')
+    + (conCapo && P.righe.length > 1 ? `<span class="ctx-tutto"><b>${tot} pz</b> in tutto · </span>` : conCapo ? '' : `<b>${tot} pz</b> `)
+    + (ingrosso(tot) ? 'Ingrosso' : 'Privato');
+}
+function avviso(t) { const el = document.getElementById('toast'); el.textContent = t; el.classList.add('su'); clearTimeout(avviso.t); avviso.t = setTimeout(() => el.classList.remove('su'), 2600); }
+
+/* ===================== 1 · BANCO ===================== */
+let filtro = 'tutti';
+document.getElementById('oggi').textContent = new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }).replace(/^./, c => c.toUpperCase());
+document.getElementById('filtri').onclick = e => { const b = e.target.closest('button'); if (!b) return; filtro = b.dataset.f; document.querySelectorAll('#filtri button').forEach(x => x.classList.toggle('on', x === b)); disegnaBanco(); };
+function quando(t) {
+  const d = new Date(t), oggi = new Date(); const g = Math.round((new Date(oggi.toDateString()) - new Date(d.toDateString())) / 864e5);
+  return g === 0 ? 'oggi' : g === 1 ? 'ieri' : d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
+}
+function disegnaBanco() {
+  const righe = salvati.map((p, i) => ({ p, i })).sort((a, b) => b.p.quando - a.p.quando)
+    .filter(({ p }) => filtro === 'tutti' || (filtro === 'ingrosso') === ingrosso(totPezzi(p)));
+  document.getElementById('righe').innerHTML = righe.length ? righe.map(({ p, i }) => {
+    const o = calcolaOrdine(p), ing = ingrosso(o.tot);
+    const cosa = p.righe.length === 1 ? `${CAPI[p.righe[0].capo].nome} · ${descrStampa(p.righe[0])}` : p.righe.map(r => CAPI[r.capo].nome).join(' + ');
+    return `<button class="riga" onclick="apri(${i})">
+      <span class="chi"><strong>${p.cliente || 'Senza nome'}</strong><small>${cosa} · ${quando(p.quando)}</small></span>
+      <span class="tag ${ing ? 'ingrosso' : ''}">${ing ? 'Ingrosso' : 'Privato'}</span>
+      <span class="num">${o.tot} pz<small>${euro(o.totale)}</small></span></button>`;
+  }).join('') : '<div class="vuota">Nessun preventivo</div>';
+}
+function nuovoPreventivo() { P = vuoto(); vai('quantita'); qIn.focus(); qIn.select(); }
+function apri(i) { P = { ...vuoto(), ...JSON.parse(JSON.stringify(salvati[i])), indice: i }; P.righe.forEach(r => { r.mano = true; r.toccato = true; }); P.q = totPezzi(P); vai('riepilogo'); }
+
+/* ===================== 2 · QUANTITÀ ===================== */
+const qIn = document.getElementById('q');
+qIn.oninput = () => { P.q = Math.max(0, parseInt(qIn.value, 10) || 0); disegnaSoglia(); };
+qIn.onkeydown = e => { if (e.key === 'Enter' && P.q > 0) vai('capo'); };
+function setQ(v) { P.q = Math.max(0, v); qIn.value = P.q || ''; disegnaSoglia(); }
+function disegnaQuantita() { qIn.value = P.q || ''; disegnaSoglia(); }
+function disegnaSoglia() {
+  const ing = ingrosso(P.q);
+  document.getElementById('avanti-q').disabled = P.q < 1;
+  document.getElementById('riempi').style.width = Math.min(100, P.q) + '%';
+  document.getElementById('soglia').classList.toggle('ingrosso', ing);
+  const e = document.getElementById('esito');
+  e.textContent = P.q < 1 ? 'Scrivi i pezzi o usa i tasti +' : ing ? 'Cliente all’ingrosso · prezzi a scaglioni' : 'Cliente privato · prezzo fisso';
+  e.classList.toggle('ingrosso', ing);
+}
+
+/* ===================== 3 · CAPI (più di uno) ===================== */
+const cerca = document.getElementById('cerca');
+cerca.oninput = () => disegnaCapo();
+const rigaDi = id => P.righe.find(r => r.capo === id);
+const totPerPrezzi = () => P.righe.length ? totPezzi(P) : P.q;
+// il numero grande è il TOTALE: 1° capo = tutto, 2° = si divide a metà, dal 3° = 1 pezzo
+function togliMettiCapo(id) {
+  const r = rigaDi(id);
+  if (r) {
+    P.righe = P.righe.filter(x => x !== r);
+    const [solo] = P.righe;
+    if (P.righe.length === 1 && !solo.toccato) solo.q = P.q;
+  } else {
+    const nuova = riga(id, 1, null, {}), [primo] = P.righe;
+    if (P.righe.length === 0) nuova.q = P.q;
+    else if (P.righe.length === 1) {
+      if (!primo.toccato) primo.q = Math.ceil(P.q / 2);
+      nuova.q = Math.max(1, P.q - primo.q);
+    }
+    P.righe.push(nuova);
+  }
+  disegnaCapo();
+}
+function cambiaQ(id, v) {
+  const r = rigaDi(id); r.q = Math.max(1, v | 0); r.toccato = true;
+  const inp = document.querySelector(`[data-q="${id}"]`); if (inp && +inp.value !== r.q) inp.value = r.q;
+  aggiornaCapi();
+}
+function disegnaCapo() {
+  const t = cerca.value.trim().toLowerCase();
+  const lista = CAPI.filter(c => !t || (c.nome + ' ' + c.modello).toLowerCase().includes(t));
+  document.getElementById('listino').innerHTML = lista.map(c => {
+    const r = rigaDi(c.id);
+    return `<div class="voce ${r ? 'sel' : ''}" onclick="togliMettiCapo(${c.id})">
+      <span class="scelto-check"></span>
+      <span class="chi"><strong>${c.nome}</strong><small>${c.modello}</small></span>
+      <span class="prezzo"><span class="num" data-p="${c.id}"></span><small>al pezzo</small></span>
+      ${r ? `<div class="pezzi" onclick="event.stopPropagation()">
+        <span>Pezzi</span>
+        <div class="mini-stepper"><button onclick="cambiaQ(${c.id}, rigaDi(${c.id}).q - 1)">−</button>
+        <input type="number" min="1" inputmode="numeric" data-q="${c.id}" value="${r.q}" oninput="cambiaQ(${c.id}, this.value)">
+        <button onclick="cambiaQ(${c.id}, rigaDi(${c.id}).q + 1)">+</button></div>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+  document.getElementById('listino').style.display = lista.length ? '' : 'none';
+  document.getElementById('nessuno').style.display = lista.length ? 'none' : '';
+  aggiornaCapi();
+}
+function aggiornaCapi() { // solo numeri: non ridisegna la lista, così il campo pezzi non perde il cursore
+  const tot = totPerPrezzi();
+  document.querySelectorAll('[data-p]').forEach(el => el.textContent = euro(prezzoCapo(CAPI[+el.dataset.p], tot)));
+  cartellino(document.getElementById('ctx-capo'), tot);
+  const n = P.righe.length, b = document.getElementById('avanti-capo');
+  b.disabled = !n;
+  b.textContent = !n ? 'Scegli almeno un capo' : n === 1 ? `Avanti: ${nomeCapo(P.righe[0])} →` : `Avanti: ${n} capi, ${totPezzi(P)} pz →`;
+}
+function iniziaStampe() { P.i = 0; vai('stampa'); }
+
+/* ===================== 4 · STAMPA (capo per capo) ===================== */
+function disegnaStampa() {
+  const r = R(), tot = totPezzi(P), priv = !ingrosso(tot), n = P.righe.length;
+  cartellino(document.getElementById('ctx-stampa'), tot, r);
+  if (priv && r.tecnica === 'seri') r.tecnica = null;
+  // a che capo siamo
+  document.getElementById('giro').innerHTML = n > 1 ? `<span class="etichetta" style="margin:0">Capo ${P.i + 1} di ${n}</span>
+    <div class="giro-capi">${P.righe.map((x, k) => `<button class="${k === P.i ? 'qui' : ''} ${k < P.i || (k !== P.i && x.tecnica) ? 'fatto' : ''}" onclick="P.i=${k};disegnaStampa()">${CAPI[x.capo].nome}</button>`).join('')}</div>` : '';
+  document.getElementById('giro').style.display = n > 1 ? '' : 'none';
+  document.getElementById('stampa-titolo').textContent = n > 1 ? `${CAPI[r.capo].nome}: che stampa?` : (r.mano ? 'Come si stampa?' : 'Che stampa?');
+  document.getElementById('indietro-stampa').textContent = P.i > 0 ? `← ${CAPI[P.righe[P.i - 1].capo].nome}` : '← Capi';
+  // copia dal capo prima
+  const prima = P.i > 0 ? P.righe[P.i - 1] : null, copia = document.getElementById('copia');
+  copia.style.display = prima && prima.tecnica && !r.tecnica ? '' : 'none';
+  if (prima) copia.innerHTML = `<b>Usa la stessa stampa di: ${CAPI[prima.capo].nome}</b><small>${TECNICHE[prima.tecnica] || ''} · ${descrStampa(prima)}</small>`;
+  // tecnica
+  document.getElementById('tecniche').innerHTML = Object.entries(TECNICHE).map(([k, v]) =>
+    `<button class="${r.tecnica === k ? 'on' : ''}" ${priv && k === 'seri' ? 'disabled title="Solo da 30 pezzi"' : ''} onclick="sceltaTecnica('${k}')">${v}</button>`).join('');
+  document.getElementById('tecnica-nota').textContent =
+    r.tecnica === 'nessuna' ? 'Solo il capo, senza personalizzazione.' :
+    priv ? 'Serigrafia solo da 30 pezzi in tutto: sotto, i telai costano più della stampa.' : '';
+  // pacchetti o a mano: solo dopo aver scelto una tecnica
+  const mostra = conStampa(r);
+  document.getElementById('modo-pacchetti').style.display = mostra && !r.mano ? 'flex' : 'none';
+  document.getElementById('modo-mano').style.display = mostra && r.mano ? 'flex' : 'none';
+  const sagoma = '<path class="corpo" d="M20 6c0-4 16-4 16 0l14 7 4 36h-7l-2-26v38H11V23l-2 26H2l4-36z"/>';
+  if (mostra) document.getElementById('pacchetti').innerHTML = PACCHETTI.map((k, i) => `
+    <button class="pacchetto ${r.pacchetto === i && !r.mano ? 'on' : ''}" onclick="R().pacchetto=${i};R().pos={...PACCHETTI[${i}].pos};disegnaStampa()">
+      <svg viewBox="0 0 56 64">${sagoma}${k.dis}</svg>
+      <span><strong>${k.nome}</strong><small>${k.dett}</small><span class="num">${euro(calcolaRiga({ ...r, pos: k.pos }, tot).pezzo)}<small> al pezzo</small></span></span>
+    </button>`).join('');
+  document.getElementById('posizioni').innerHTML = Object.entries(POS).map(([k, v]) =>
+    `<button class="chip ${r.pos[k] ? 'on' : ''}" onclick="togliMetti('${k}')">${v}</button>`).join('');
+  document.getElementById('grandezze').innerHTML = Object.entries(r.pos).map(([k, g]) => `
+    <div><div class="etichetta">Grandezza · ${POS[k]}</div><div class="segmenti">${Object.entries(GRAND).map(([gk, gv]) =>
+      `<button class="${g === gk ? 'on' : ''}" onclick="R().pos['${k}']='${gk}';R().pacchetto=-1;disegnaStampa()">${gv}</button>`).join('')}</div></div>`).join('');
+  document.getElementById('colori').innerHTML = r.tecnica === 'seri' ? `<div class="etichetta">Colori della stampa</div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><div class="mini-stepper"><button onclick="R().colori=Math.max(1,R().colori-1);disegnaStampa()">−</button><span class="num">${r.colori}</span><button onclick="R().colori=Math.min(6,R().colori+1);disegnaStampa()">+</button></div>
+    <span style="color:var(--sec);font-size:13px">ogni colore = un telaio da ${euro(SERI_TELAIO)} per posizione, una volta sola</span></div>` : '';
+  // conto di QUESTO capo
+  const c = calcolaRiga(r, tot);
+  document.getElementById('conto-lbl').textContent = n > 1 ? `${CAPI[r.capo].nome} · ${r.q} pz` : `Totale ${r.q} pz`;
+  const t = document.getElementById('conto-tot');
+  t.textContent = euro(c.totale); t.classList.remove('lampo'); void t.offsetWidth; t.classList.add('lampo');
+  document.getElementById('conto-unit').textContent = `${euro(c.pezzo)} al pezzo` + (c.fisso ? ` + ${euro(c.fisso)} telai` : '');
+  const pronto = r.tecnica === 'nessuna' || (mostra && Object.keys(r.pos).length > 0);
+  const b = document.getElementById('avanti-stampa'); b.disabled = !pronto;
+  const ultimo = P.i === n - 1;
+  b.textContent = !pronto ? (!r.tecnica ? 'Scegli la stampa' : 'Scegli dove') : ultimo ? 'Riepilogo →' : `Avanti: ${CAPI[P.righe[P.i + 1].capo].nome} →`;
+}
+function sceltaTecnica(k) { const r = R(); r.tecnica = k; if (k === 'nessuna') { r.pos = {}; r.pacchetto = -1; } disegnaStampa(); }
+function togliMetti(k) { const r = R(); if (r.pos[k]) delete r.pos[k]; else r.pos[k] = 'M'; r.pacchetto = -1; disegnaStampa(); }
+function copiaStampa() {
+  const prima = P.righe[P.i - 1], r = R();
+  Object.assign(r, { tecnica: prima.tecnica, colori: prima.colori, pos: { ...prima.pos }, pacchetto: prima.pacchetto, mano: prima.mano });
+  disegnaStampa();
+}
+function stampaIndietro() { if (P.i > 0) { P.i--; disegnaStampa(); window.scrollTo(0, 0); } else vai('capo'); }
+function stampaAvanti() { if (P.i < P.righe.length - 1) { P.i++; disegnaStampa(); window.scrollTo(0, 0); } else vai('riepilogo'); }
+
+/* ===================== 5 · RIEPILOGO ===================== */
+const CANALI = { wa: ['WhatsApp', 'i-wa', 'Salva e manda su WhatsApp'], mail: ['Email', 'i-mail', 'Salva e manda via email'], pdf: ['PDF da stampare', 'i-pdf', 'Salva e scarica il PDF'] };
+const cliente = document.getElementById('cliente');
+cliente.oninput = () => { P.cliente = cliente.value; disegnaFoglio(); };
+function disegnaRiepilogo() {
+  const tot = totPezzi(P), ing = ingrosso(tot), uno = P.righe.length === 1;
+  cartellino(document.getElementById('ctx-riep'), tot);
+  cliente.value = P.cliente;
+  // un capo solo: la scala; più capi: quanto manca al prossimo scaglione
+  document.getElementById('scala-box').style.display = ing && uno ? '' : 'none';
+  if (ing && uno) {
+    const r = P.righe[0], base = calcolaRiga(r, r.q).pezzo;
+    const gradini = SCAGLIONI.map(([s]) => s); if (!gradini.includes(r.q)) gradini.push(r.q); gradini.sort((a, b) => a - b);
+    document.getElementById('scala').style.gridTemplateColumns = window.innerWidth < 560 ? '' : `repeat(${gradini.length}, 1fr)`;
+    document.getElementById('scala').innerHTML = gradini.map(q => {
+      const c = calcolaRiga(r, q, q), d = c.pezzo - base, ora = q === r.q;
+      return `<button class="gradino ${ora ? 'attuale' : ''}" onclick="P.righe[0].q=${q};disegnaRiepilogo()">
+        <div class="q">${q} pz${ora ? ' · ora' : ''}</div><span class="num">${euro(c.pezzo)}</span>
+        <div class="diff ${d < 0 ? 'giu' : ''}">${ora || Math.abs(d) < .005 ? 'al pezzo' : (d < 0 ? '−' : '+') + euro(Math.abs(d)) + ' al pezzo'}</div></button>`;
+    }).join('');
+  }
+  const prossimo = SCAGLIONI.find(([s]) => s > tot), spinta = document.getElementById('spinta');
+  const mostraSpinta = ing && !uno && prossimo;
+  spinta.style.display = mostraSpinta ? '' : 'none';
+  if (mostraSpinta) {
+    const attuale = SCAGLIONI.filter(([s]) => s <= tot).pop()[1];
+    spinta.innerHTML = `Mancano <b>${prossimo[0] - tot} pz</b> allo scaglione da ${prossimo[0]}: ogni capo costerebbe <b class="giu">${euro(attuale - prossimo[1])} in meno</b> al pezzo.`;
+  }
+  // elenco capi, tocchi per modificare
+  const o = calcolaOrdine(P);
+  document.getElementById('r-capi').innerHTML = P.righe.map((r, k) => `
+    <button class="r-capo" onclick="P.i=${k};vai('stampa')">
+      <span><strong>${nomeCapo(r)}</strong><small>${r.q} pz · ${conStampa(r) ? TECNICHE[r.tecnica] + ' ' : ''}${descrStampa(r)}</small></span>
+      <span class="num">${euro(o.righe[k].totale)}</span></button>`).join('')
+    + `<button class="link" style="align-self:flex-start;font-size:13px" onclick="vai('capo')">+ Aggiungi o togli capi</button>`;
+  document.getElementById('canali').innerHTML = Object.entries(CANALI).map(([k, [nome, ic]]) =>
+    `<button class="canale ${P.canale === k ? 'on' : ''}" onclick="P.canale='${k}';disegnaRiepilogo()"><svg><use href="#${ic}"/></svg>${nome}</button>`).join('');
+  document.getElementById('salva').textContent = CANALI[P.canale][2];
+  disegnaFoglio();
+}
+function disegnaFoglio() {
+  const o = calcolaOrdine(P), n = P.indice !== null ? P.indice + 40 : salvati.length + 40;
+  const fisso = o.righe.reduce((s, c) => s + c.fisso, 0);
+  const qualcunoStampato = P.righe.some(conStampa);
+  document.getElementById('foglio').innerHTML = `
+    <div class="intest"><b>Stamperia Demo</b><span>Preventivo n. ${String(n).padStart(4, '0')}<br>${new Date().toLocaleDateString('it-IT')}</span></div>
+    <div class="per">Per<b>${P.cliente ? P.cliente.replace(/</g, '&lt;') : '—'}</b></div>
+    <table>
+      ${P.righe.map((r, k) => { const c = o.righe[k]; return `
+        <tr class="capo-riga"><td><b>${nomeCapo(r)}</b><br><span class="dett">${conStampa(r) ? `Stampa ${TECNICHE[r.tecnica]}${r.tecnica === 'seri' ? ` ${r.colori} col.` : ''} · ${descrStampa(r)}` : 'Senza stampa'}</span><br><span class="dett">${r.q} × ${euro(c.pezzo)}</span></td><td>${euro(c.pezzo * r.q)}</td></tr>`; }).join('')}
+      ${fisso ? `<tr><td>Telai serigrafia (una tantum)</td><td>${euro(fisso)}</td></tr>` : ''}
+    </table>
+    <div class="tot"><span>Totale IVA esclusa<br><span class="dett">${o.tot} pezzi</span></span><span class="num">${euro(o.totale)}</span></div>
+    <div class="iva">IVA 22% inclusa: ${euro(o.totale * 1.22)}</div>
+    <div class="piede">Valido 30 giorni${qualcunoStampato ? ' · Grafica fornita dal cliente' : ''}</div>`;
+}
+function salva() {
+  if (!P.cliente.trim()) { cliente.focus(); avviso('Scrivi il nome del cliente'); return; }
+  const dati = { cliente: P.cliente.trim(), quando: Date.now(), righe: JSON.parse(JSON.stringify(P.righe)) };
+  if (P.indice !== null) salvati[P.indice] = dati; else salvati.push(dati);
+  memorizza();
+  const come = { wa: 'Pronto per WhatsApp', mail: 'Pronto per l’email', pdf: 'PDF pronto' }[P.canale];
+  vai('banco');
+  avviso(`Salvato. ${come} (nella bozza non parte niente).`);
+}
+
+function entra() { vai('banco'); }
+function esci() { salvati = ESEMPI.slice(); memorizza(); vai('ingresso'); }
+
+vai('ingresso');
+</script>
+</body>
+</html>
