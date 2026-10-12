@@ -256,6 +256,11 @@
   .t-riga.cambiato .pallino { visibility: visible; }
   .t-riga input.nome { width: 100%; background: var(--el); border: 2px solid transparent; border-radius: 10px; padding: 8px 10px; color: var(--testo); font-size: 14px; outline: none; margin-top: 4px; }
   .t-riga input.nome:focus { border-color: var(--luce); }
+  .nome-btn { background: transparent; color: var(--testo); text-align: left; padding: 4px 8px; margin-left: -8px; border-radius: 8px; }
+  .nome-btn:hover { background: var(--el); }
+  .nome-btn .matita-n { color: var(--sec); font-weight: 400; margin-left: 8px; opacity: 0; transition: opacity .15s; }
+  .nome-btn:hover .matita-n, .nome-btn:focus-visible .matita-n { opacity: 1; }
+  @media (hover: none) { .nome-btn .matita-n { opacity: 1; } }
   .prezzo-in { display: inline-flex; align-items: center; gap: 6px; background: var(--el); border: 2px solid transparent; border-radius: 10px; padding: 6px 10px; }
   .prezzo-in:focus-within { border-color: var(--luce); }
   .prezzo-in input { width: 64px; background: transparent; border: 0; color: var(--testo); text-align: right; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 22px; outline: none; }
@@ -776,9 +781,9 @@ function contaL() {
 function disegnaListino() {
   const c = document.getElementById('l-corpo'), riga = k => `t-riga ${cambiatiL.has(k) ? 'cambiato' : ''}`;
   if (schedaL === 'capi') c.innerHTML = `<div class="tabella">${L.capi.map((x, i) => `
-    <div class="${riga('c' + i)}"><div>${x.nuovo
-      ? `<input class="nome" placeholder="Nome, es. Felpa" value="${x.nome}" oninput="L.capi[${i}].nome=this.value;segnaL('c${i}',this)"><input class="nome" placeholder="Modello, es. Cappuccio 330 g" value="${x.modello}" oninput="L.capi[${i}].modello=this.value;segnaL('c${i}',this)">`
-      : `<strong>${x.nome}<i class="pallino"></i></strong><small>${x.modello}</small>`}</div>
+    <div class="${riga('c' + i)}"><div>${x.nuovo || x.modifica
+      ? `<input class="nome" id="nome-${i}" placeholder="Nome, es. Felpa" value="${x.nome.replace(/"/g, '&quot;')}" oninput="L.capi[${i}].nome=this.value;segnaL('c${i}',this)"><input class="nome" placeholder="Modello, es. Cappuccio 330 g" value="${x.modello.replace(/"/g, '&quot;')}" oninput="L.capi[${i}].modello=this.value;segnaL('c${i}',this)">`
+      : `<button class="nome-btn" title="Tocca per cambiare nome e modello" onclick="modificaNome(${i})"><strong>${x.nome}<i class="pallino"></i><span class="matita-n">✎</span></strong><small>${x.modello}</small></button>`}</div>
     ${campoPrezzo(x.base, `oninput="L.capi[${i}].base=leggi(this.value);segnaL('c${i}',this)"`)}</div>`).join('')}</div>
     <button class="link" style="margin-top:12px" onclick="L.capi.push({id:L.capi.length,nome:'',modello:'',base:0,nuovo:true});cambiatiL.add('c'+(L.capi.length-1));disegnaListino();contaL()">+ Aggiungi capo</button>
     <p class="spiega" style="margin-top:8px">Prezzo del capo per 50 pezzi. Gli altri scaglioni si calcolano da soli.</p>`;
@@ -791,8 +796,11 @@ function disegnaListino() {
     ${campoPrezzo(s[1], `oninput="L.scaglioni[${i}][1]=leggi(this.value);segnaL('g${i}',this)"`)}</div>`).join('')}</div>
     <p class="spiega" style="margin-top:12px">Quanto cambia il prezzo di ogni capo, al pezzo, in base ai pezzi totali dell'ordine. Uno sconto si scrive col meno: −1,50. Sotto i 30 pezzi: privato, capo +50%.</p>`;
 }
+function modificaNome(i) { L.capi[i].modifica = true; disegnaListino(); const el = document.getElementById('nome-' + i); if (el) { el.focus(); el.select(); } }
 function salvaListino() {
-  L.capi = L.capi.filter(x => !x.nuovo || x.nome.trim()).map(({ nuovo, ...x }) => ({ ...x, modello: x.modello || '—' }));
+  // un capo esistente lasciato senza nome tiene quello di prima; uno nuovo senza nome non si salva
+  L.capi = L.capi.filter(x => !x.nuovo || x.nome.trim())
+    .map(({ nuovo, modifica, ...x }) => ({ ...x, nome: x.nome.trim() || (CAPI[x.id] ? CAPI[x.id].nome : ''), modello: x.modello.trim() || '—' }));
   applicaListino(L);
   try { localStorage.setItem(KEY_L, JSON.stringify(listinoOra())); } catch (e) {}
   const n = cambiatiL.size; cambiatiL.clear(); L = listinoOra(); disegnaListino(); contaL();
