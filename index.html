@@ -256,6 +256,13 @@
   .t-riga.cambiato .pallino { visibility: visible; }
   .t-riga input.nome { width: 100%; background: var(--el); border: 2px solid transparent; border-radius: 10px; padding: 8px 10px; color: var(--testo); font-size: 14px; outline: none; margin-top: 4px; }
   .t-riga input.nome:focus { border-color: var(--luce); }
+  .azioni-riga { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
+  .matita-on { background: var(--testo); color: var(--bg); font-weight: 600; font-size: 13px; padding: 6px 12px; border-radius: 99px; }
+  .elimina { background: transparent; color: var(--sec); font-size: 13px; }
+  .elimina:hover, .elimina:focus-visible { color: #F87171; }
+  .da-eliminare strong { text-decoration: line-through; color: var(--sec); }
+  .da-eliminare .prezzo-in { opacity: .4; }
+  .annulla { background: transparent; color: var(--testo); font-size: 12px; text-decoration: underline; text-underline-offset: 2px; }
   .nome-btn { background: transparent; color: var(--testo); text-align: left; padding: 4px 8px; margin-left: -8px; border-radius: 8px; }
   .nome-btn:hover { background: var(--el); }
   .nome-btn .matita-n { color: var(--sec); font-weight: 400; margin-left: 8px; opacity: 0; transition: opacity .15s; }
@@ -503,7 +510,7 @@ const R = () => P.righe[P.i];
 const KEY = 'preventivi-prova-2';
 // listino: copia di partenza (per "Esci") e listino salvato in questo browser
 const KEY_L = 'listino-prova';
-const listinoOra = () => ({ capi: CAPI.map(c => ({ id: c.id, nome: c.nome, modello: c.modello, base: c.base })), stampa: JSON.parse(JSON.stringify(STAMPA)), scaglioni: SCAGLIONI.map(s => [...s]) });
+const listinoOra = () => ({ capi: CAPI.map(c => ({ id: c.id, nome: c.nome, modello: c.modello, base: c.base, eliminato: !!c.eliminato })), stampa: JSON.parse(JSON.stringify(STAMPA)), scaglioni: SCAGLIONI.map(s => [...s]) });
 const LISTINO_ORIGINALE = listinoOra();
 function applicaListino(l) {
   l.capi.forEach(c => { if (CAPI[c.id]) Object.assign(CAPI[c.id], c); else CAPI.push({ ...c }); });
@@ -603,7 +610,7 @@ function cambiaQ(id, v) {
 }
 function disegnaCapo() {
   const t = cerca.value.trim().toLowerCase();
-  const lista = CAPI.filter(c => !t || (c.nome + ' ' + c.modello).toLowerCase().includes(t));
+  const lista = CAPI.filter(c => !c.eliminato).filter(c => !t || (c.nome + ' ' + c.modello).toLowerCase().includes(t));
   document.getElementById('listino').innerHTML = lista.map(c => {
     const r = rigaDi(c.id);
     return `<div class="voce ${r ? 'sel' : ''}" onclick="togliMettiCapo(${c.id})">
@@ -780,11 +787,14 @@ function contaL() {
 }
 function disegnaListino() {
   const c = document.getElementById('l-corpo'), riga = k => `t-riga ${cambiatiL.has(k) ? 'cambiato' : ''}`;
-  if (schedaL === 'capi') c.innerHTML = `<div class="tabella">${L.capi.map((x, i) => `
-    <div class="${riga('c' + i)}"><div>${x.nuovo || x.modifica
-      ? `<input class="nome" id="nome-${i}" placeholder="Nome, es. Felpa" value="${x.nome.replace(/"/g, '&quot;')}" oninput="L.capi[${i}].nome=this.value;segnaL('c${i}',this)"><input class="nome" placeholder="Modello, es. Cappuccio 330 g" value="${x.modello.replace(/"/g, '&quot;')}" oninput="L.capi[${i}].modello=this.value;segnaL('c${i}',this)">`
+  if (schedaL === 'capi') c.innerHTML = `<div class="tabella">${L.capi.map((x, i) => x.eliminato ? '' : `
+    <div class="${riga('c' + i)} ${x.daEliminare ? 'da-eliminare' : ''}"><div>${x.daEliminare
+      ? `<strong>${x.nome || 'Nuovo capo'}<i class="pallino"></i></strong><small>Verrà eliminato quando salvi · <button class="annulla" onclick="annullaElimina(${i})">Annulla</button></small>`
+      : x.nuovo || x.modifica
+      ? `<input class="nome" id="nome-${i}" placeholder="Nome, es. Felpa" value="${x.nome.replace(/"/g, '&quot;')}" oninput="L.capi[${i}].nome=this.value;segnaCapo(${i},this)"><input class="nome" placeholder="Modello, es. Cappuccio 330 g" value="${x.modello.replace(/"/g, '&quot;')}" oninput="L.capi[${i}].modello=this.value;segnaCapo(${i},this)">
+         <div class="azioni-riga"><button class="matita-on" onclick="fineModifica(${i})">✎ Fine</button><button class="elimina" onclick="eliminaCapo(${i})">Elimina capo</button></div>`
       : `<button class="nome-btn" title="Tocca per cambiare nome e modello" onclick="modificaNome(${i})"><strong>${x.nome}<i class="pallino"></i><span class="matita-n">✎</span></strong><small>${x.modello}</small></button>`}</div>
-    ${campoPrezzo(x.base, `oninput="L.capi[${i}].base=leggi(this.value);segnaL('c${i}',this)"`)}</div>`).join('')}</div>
+    ${campoPrezzo(x.base, `${x.daEliminare ? 'disabled' : ''} oninput="L.capi[${i}].base=leggi(this.value);segnaCapo(${i},this)"`)}</div>`).join('')}</div>
     <button class="link" style="margin-top:12px" onclick="L.capi.push({id:L.capi.length,nome:'',modello:'',base:0,nuovo:true});cambiatiL.add('c'+(L.capi.length-1));disegnaListino();contaL()">+ Aggiungi capo</button>
     <p class="spiega" style="margin-top:8px">Prezzo del capo per 50 pezzi. Gli altri scaglioni si calcolano da soli.</p>`;
   if (schedaL === 'stampa') c.innerHTML = `<div class="tabella"><div class="t-testa"><span>Tecnica · per posizione</span><span>Piccola</span><span>Media</span><span>Grande</span></div>${Object.keys(L.stampa).map(k => `
@@ -796,11 +806,27 @@ function disegnaListino() {
     ${campoPrezzo(s[1], `oninput="L.scaglioni[${i}][1]=leggi(this.value);segnaL('g${i}',this)"`)}</div>`).join('')}</div>
     <p class="spiega" style="margin-top:12px">Quanto cambia il prezzo di ogni capo, al pezzo, in base ai pezzi totali dell'ordine. Uno sconto si scrive col meno: −1,50. Sotto i 30 pezzi: privato, capo +50%.</p>`;
 }
+// una riga dei capi è "cambiata" se è diversa dal listino salvato
+function capoCambiato(i) {
+  const x = L.capi[i], o = CAPI[i];
+  return !o || x.nuovo || x.daEliminare || x.nome !== o.nome || x.modello !== o.modello || x.base !== o.base;
+}
+function ricontaCapi() { [...cambiatiL].filter(k => k[0] === 'c').forEach(k => cambiatiL.delete(k)); L.capi.forEach((x, i) => { if (!x.eliminato && capoCambiato(i)) cambiatiL.add('c' + i); }); }
+function segnaCapo(i, el) {
+  if (capoCambiato(i)) cambiatiL.add('c' + i); else cambiatiL.delete('c' + i);
+  el.closest('.t-riga').classList.toggle('cambiato', cambiatiL.has('c' + i)); contaL();
+}
+function fineModifica(i) { L.capi[i].modifica = false; if (L.capi[i].nuovo && !L.capi[i].nome.trim()) L.capi.splice(i, 1); ricontaCapi(); disegnaListino(); contaL(); }
+function eliminaCapo(i) {
+  if (L.capi[i].nuovo) { L.capi.splice(i, 1); ricontaCapi(); disegnaListino(); contaL(); return; }
+  L.capi[i].modifica = false; L.capi[i].daEliminare = true; cambiatiL.add('c' + i); disegnaListino(); contaL();
+}
+function annullaElimina(i) { L.capi[i].daEliminare = false; ricontaCapi(); disegnaListino(); contaL(); }
 function modificaNome(i) { L.capi[i].modifica = true; disegnaListino(); const el = document.getElementById('nome-' + i); if (el) { el.focus(); el.select(); } }
 function salvaListino() {
   // un capo esistente lasciato senza nome tiene quello di prima; uno nuovo senza nome non si salva
   L.capi = L.capi.filter(x => !x.nuovo || x.nome.trim())
-    .map(({ nuovo, modifica, ...x }) => ({ ...x, nome: x.nome.trim() || (CAPI[x.id] ? CAPI[x.id].nome : ''), modello: x.modello.trim() || '—' }));
+    .map(({ nuovo, modifica, daEliminare, ...x }) => ({ ...x, eliminato: x.eliminato || !!daEliminare, nome: x.nome.trim() || (CAPI[x.id] ? CAPI[x.id].nome : ''), modello: x.modello.trim() || '—' })).map((x, i) => ({ ...x, id: i }));
   applicaListino(L);
   try { localStorage.setItem(KEY_L, JSON.stringify(listinoOra())); } catch (e) {}
   const n = cambiatiL.size; cambiatiL.clear(); L = listinoOra(); disegnaListino(); contaL();
