@@ -256,6 +256,8 @@
   .t-riga.cambiato .pallino { visibility: visible; }
   .t-riga input.nome { width: 100%; background: var(--el); border: 2px solid transparent; border-radius: 10px; padding: 8px 10px; color: var(--testo); font-size: 14px; outline: none; margin-top: 4px; }
   .t-riga input.nome:focus { border-color: var(--luce); }
+  .soglia-in { display: inline-flex; align-items: center; gap: 8px; color: var(--sec); font-size: 14px; }
+  .t-riga input.nome.corto { width: 72px; margin-top: 0; text-align: center; }
   .azioni-riga { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
   .matita-on { background: var(--testo); color: var(--bg); font-weight: 600; font-size: 13px; padding: 6px 12px; border-radius: 99px; }
   .elimina { background: transparent; color: var(--sec); font-size: 13px; }
@@ -359,7 +361,7 @@
         <button class="azzera" onclick="setQ(0); qIn.focus()">Azzera</button>
       </div>
       <div class="soglia" id="soglia"><div class="riempi" id="riempi"></div><div class="tacca"></div></div>
-      <div class="legenda"><span style="left:0">1</span><span style="left:30%;transform:translateX(-50%)">30 · ingrosso</span><span style="right:0">100+</span></div>
+      <div class="legenda"><span style="left:0">1</span><span id="legenda-soglia" style="left:30%;transform:translateX(-50%)">30 · ingrosso</span><span style="right:0">100+</span></div>
       <div class="esito" id="esito"></div>
       <button class="primario" id="avanti-q" onclick="vai('capo')">Avanti: scegli i capi →</button>
     </div>
@@ -417,7 +419,7 @@
 
   <!-- ============ 5 · RIEPILOGO ============ -->
   <section class="vista" id="v-riepilogo">
-    <div class="testa"><button class="indietro" onclick="P.i = P.righe.length - 1; vai('stampa')">← Stampa</button><span class="contesto" id="ctx-riep"></span></div>
+    <div class="testa"><button class="indietro" id="indietro-riep" onclick="tornaDaRiepilogo()">← Stampa</button><span class="contesto" id="ctx-riep"></span></div>
     <div class="passi" data-passo="4"></div>
     <div class="domanda"><div class="titolo">Manda il preventivo</div></div>
     <div id="scala-box">
@@ -450,7 +452,6 @@
 
 <script>
 /* ===================== DATI FINTI (solo per provare) ===================== */
-const SOGLIA = 30;
 const CAPI = [ // nome, modello, prezzo base del capo (ingrosso, 50 pezzi)
   ['Maglietta', 'Leggera 150 g', 3.90], ['Maglietta', 'Classica 190 g', 4.90], ['Maglietta', 'Pesante 240 g', 6.50],
   ['Polo', 'Piqué 210 g', 9.50], ['Canotta', 'Sportiva 160 g', 3.50], ['Camicia', 'Oxford', 15.90],
@@ -462,7 +463,9 @@ const SCAGLIONI = [[30, 1.40], [50, 0], [100, -1.50], [300, -2.50]];
 const TECNICHE = { nessuna: 'Nessuna', dtf: 'DTF', seri: 'Serigrafia', ricamo: 'Ricamo' };
 const POS = { cuore: 'Lato cuore', petto: 'Centro petto', retro: 'Retro', manica: 'Manica' };
 const GRAND = { S: 'Piccola', M: 'Media', L: 'Grande' };
-const STAMPA = { dtf: { S: 1.5, M: 2.5, L: 3.5 }, seri: { S: 0.9, M: 1.4, L: 2.0 }, ricamo: { S: 3.0, M: 5.5, L: 9.0 } };
+const STAMPA = { dtf: { nome: 'DTF', S: 1.5, M: 2.5, L: 3.5 }, seri: { nome: 'Serigrafia', S: 0.9, M: 1.4, L: 2.0 }, ricamo: { nome: 'Ricamo', S: 3.0, M: 5.5, L: 9.0 } };
+const tecnicheAttive = () => Object.keys(STAMPA).filter(k => !STAMPA[k].eliminato);
+function aggiornaTecniche() { Object.keys(TECNICHE).forEach(k => delete TECNICHE[k]); TECNICHE.nessuna = 'Nessuna'; Object.entries(STAMPA).forEach(([k, v]) => TECNICHE[k] = v.nome); }
 const SERI_COLORE = 0.4, SERI_TELAIO = 25;
 const PACCHETTI = [
   { nome: 'Logo sul cuore',        dett: 'Piccola davanti',              pos: { cuore: 'S' },            dis: '<rect class="stampa" x="34" y="20" width="9" height="8" rx="1.5"/>' },
@@ -479,11 +482,13 @@ const ESEMPI = [
 
 /* ===================== CONTI ===================== */
 const euro = v => v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' €';
-const ingrosso = tot => tot >= SOGLIA;
+const sogliaIngrosso = () => SCAGLIONI.length ? SCAGLIONI[0][0] : Infinity;
+const ingrosso = tot => tot >= sogliaIngrosso();
 const conStampa = r => r.tecnica && r.tecnica !== 'nessuna';
 const totPezzi = p => p.righe.reduce((s, r) => s + r.q, 0);
 const nomeCapo = r => `${CAPI[r.capo].nome} ${CAPI[r.capo].modello.toLowerCase()}`;
 function prezzoCapo(capo, tot) {
+  if (!SCAGLIONI.length) return capo.base;
   if (!ingrosso(tot)) return Math.round(capo.base * 1.5 * 10) / 10;
   let delta = 0; for (const [s, d] of SCAGLIONI) if (tot >= s) delta = d;
   return Math.max(0.5, capo.base + delta);
@@ -510,13 +515,17 @@ const R = () => P.righe[P.i];
 const KEY = 'preventivi-prova-2';
 // listino: copia di partenza (per "Esci") e listino salvato in questo browser
 const KEY_L = 'listino-prova';
-const listinoOra = () => ({ capi: CAPI.map(c => ({ id: c.id, nome: c.nome, modello: c.modello, base: c.base, eliminato: !!c.eliminato })), stampa: JSON.parse(JSON.stringify(STAMPA)), scaglioni: SCAGLIONI.map(s => [...s]) });
+const listinoOra = () => ({ capi: CAPI.map(c => ({ id: c.id, nome: c.nome, modello: c.modello, base: c.base, eliminato: !!c.eliminato })), stampa: Object.entries(STAMPA).map(([k, v]) => ({ k, nome: v.nome, S: v.S, M: v.M, L: v.L, eliminato: !!v.eliminato })), scaglioni: SCAGLIONI.map(([soglia, delta]) => ({ soglia, delta })) });
 const LISTINO_ORIGINALE = listinoOra();
 function applicaListino(l) {
   l.capi.forEach(c => { if (CAPI[c.id]) Object.assign(CAPI[c.id], c); else CAPI.push({ ...c }); });
   CAPI.length = l.capi.length;
-  Object.keys(STAMPA).forEach(k => Object.assign(STAMPA[k], l.stampa[k]));
-  l.scaglioni.forEach((s, i) => SCAGLIONI[i] = [...s]);
+  const st = Array.isArray(l.stampa) ? l.stampa : Object.entries(l.stampa).map(([k, v]) => ({ k, ...v }));
+  Object.keys(STAMPA).forEach(k => { if (!st.some(x => x.k === k)) delete STAMPA[k]; });
+  st.forEach(x => STAMPA[x.k] = { nome: x.nome || (STAMPA[x.k] && STAMPA[x.k].nome) || x.k, S: x.S, M: x.M, L: x.L, eliminato: !!x.eliminato });
+  const sc = l.scaglioni.map(x => Array.isArray(x) ? [...x] : [x.soglia, x.delta]).sort((a, b) => a[0] - b[0]);
+  SCAGLIONI.length = 0; sc.forEach(x => SCAGLIONI.push(x));
+  aggiornaTecniche();
 }
 try { const l = JSON.parse(localStorage.getItem(KEY_L)); if (l) applicaListino(l); } catch (e) {}
 let salvati;
@@ -554,7 +563,7 @@ function disegnaBanco() {
     .filter(({ p }) => filtro === 'tutti' || (filtro === 'ingrosso') === ingrosso(totPezzi(p)));
   document.getElementById('righe').innerHTML = righe.length ? righe.map(({ p, i }) => {
     const o = calcolaOrdine(p), ing = ingrosso(o.tot);
-    const cosa = p.righe.length === 1 ? `${CAPI[p.righe[0].capo].nome} · ${descrStampa(p.righe[0])}` : p.righe.map(r => CAPI[r.capo].nome).join(' + ');
+    const cosa = p.righe.length === 1 ? CAPI[p.righe[0].capo].nome + (conStampa(p.righe[0]) || tecnicheAttive().length ? ` · ${descrStampa(p.righe[0])}` : '') : p.righe.map(r => CAPI[r.capo].nome).join(' + ');
     return `<button class="riga" onclick="apri(${i})">
       <span class="chi"><strong>${p.cliente || 'Senza nome'}</strong><small>${cosa} · ${quando(p.quando)}</small></span>
       <span class="tag ${ing ? 'ingrosso' : ''}">${ing ? 'Ingrosso' : 'Privato'}</span>
@@ -575,6 +584,9 @@ function disegnaSoglia() {
   document.getElementById('avanti-q').disabled = P.q < 1;
   document.getElementById('riempi').style.width = Math.min(100, P.q) + '%';
   document.getElementById('soglia').classList.toggle('ingrosso', ing);
+  const sg = sogliaIngrosso(), lg = document.getElementById('legenda-soglia'), tacca = document.querySelector('#soglia .tacca');
+  lg.style.display = tacca.style.display = sg <= 100 ? '' : 'none';
+  if (sg <= 100) { lg.textContent = sg + ' · ingrosso'; lg.style.left = tacca.style.left = sg + '%'; }
   const e = document.getElementById('esito');
   e.textContent = P.q < 1 ? 'Scrivi i pezzi o usa i tasti +' : ing ? 'Cliente all’ingrosso · prezzi a scaglioni' : 'Cliente privato · prezzo fisso';
   e.classList.toggle('ingrosso', ing);
@@ -637,7 +649,11 @@ function aggiornaCapi() { // solo numeri: non ridisegna la lista, così il campo
   b.disabled = !n;
   b.textContent = !n ? 'Scegli almeno un capo' : n === 1 ? `Avanti: ${nomeCapo(P.righe[0])} →` : `Avanti: ${n} capi, ${totPezzi(P)} pz →`;
 }
-function iniziaStampe() { P.i = 0; vai('stampa'); }
+function iniziaStampe() {
+  if (!tecnicheAttive().length) { P.righe.forEach(r => { r.tecnica = 'nessuna'; r.pos = {}; }); vai('riepilogo'); return; }
+  P.i = 0; vai('stampa');
+}
+function tornaDaRiepilogo() { if (!tecnicheAttive().length) vai('capo'); else { P.i = P.righe.length - 1; vai('stampa'); } }
 
 /* ===================== 4 · STAMPA (capo per capo) ===================== */
 function disegnaStampa() {
@@ -655,7 +671,8 @@ function disegnaStampa() {
   copia.style.display = prima && prima.tecnica && !r.tecnica ? '' : 'none';
   if (prima) copia.innerHTML = `<b>Usa la stessa stampa di: ${CAPI[prima.capo].nome}</b><small>${TECNICHE[prima.tecnica] || ''} · ${descrStampa(prima)}</small>`;
   // tecnica
-  document.getElementById('tecniche').innerHTML = Object.entries(TECNICHE).map(([k, v]) =>
+  if (r.tecnica && r.tecnica !== 'nessuna' && (!STAMPA[r.tecnica] || STAMPA[r.tecnica].eliminato)) r.tecnica = null;
+  document.getElementById('tecniche').innerHTML = Object.entries(TECNICHE).filter(([k]) => k === 'nessuna' || !STAMPA[k].eliminato).map(([k, v]) =>
     `<button class="${r.tecnica === k ? 'on' : ''}" ${priv && k === 'seri' ? 'disabled title="Solo da 30 pezzi"' : ''} onclick="sceltaTecnica('${k}')">${v}</button>`).join('');
   document.getElementById('tecnica-nota').textContent =
     r.tecnica === 'nessuna' ? 'Solo il capo, senza personalizzazione.' :
@@ -704,6 +721,7 @@ const CANALI = { wa: ['WhatsApp', 'i-wa', 'Salva e manda su WhatsApp'], mail: ['
 const cliente = document.getElementById('cliente');
 cliente.oninput = () => { P.cliente = cliente.value; disegnaFoglio(); };
 function disegnaRiepilogo() {
+  document.getElementById('indietro-riep').textContent = tecnicheAttive().length ? '← Stampa' : '← Capi';
   const tot = totPezzi(P), ing = ingrosso(tot), uno = P.righe.length === 1;
   cartellino(document.getElementById('ctx-riep'), tot);
   cliente.value = P.cliente;
@@ -731,7 +749,7 @@ function disegnaRiepilogo() {
   const o = calcolaOrdine(P);
   document.getElementById('r-capi').innerHTML = P.righe.map((r, k) => `
     <button class="r-capo" onclick="P.i=${k};vai('stampa')">
-      <span><strong>${nomeCapo(r)}</strong><small>${r.q} pz · ${conStampa(r) ? TECNICHE[r.tecnica] + ' ' : ''}${descrStampa(r)}</small></span>
+      <span><strong>${nomeCapo(r)}</strong><small>${r.q} pz${conStampa(r) ? ` · ${TECNICHE[r.tecnica]} ${descrStampa(r)}` : tecnicheAttive().length ? ' · senza stampa' : ''}</small></span>
       <span class="num">${euro(o.righe[k].totale)}</span></button>`).join('')
     + `<button class="link" style="align-self:flex-start;font-size:13px" onclick="vai('capo')">+ Aggiungi o togli capi</button>`;
   document.getElementById('canali').innerHTML = Object.entries(CANALI).map(([k, [nome, ic]]) =>
@@ -748,7 +766,7 @@ function disegnaFoglio() {
     <div class="per">Per<b>${P.cliente ? P.cliente.replace(/</g, '&lt;') : '—'}</b></div>
     <table>
       ${P.righe.map((r, k) => { const c = o.righe[k]; return `
-        <tr class="capo-riga"><td><b>${nomeCapo(r)}</b><br><span class="dett">${conStampa(r) ? `Stampa ${TECNICHE[r.tecnica]}${r.tecnica === 'seri' ? ` ${r.colori} col.` : ''} · ${descrStampa(r)}` : 'Senza stampa'}</span><br><span class="dett">${r.q} × ${euro(c.pezzo)}</span></td><td>${euro(c.pezzo * r.q)}</td></tr>`; }).join('')}
+        <tr class="capo-riga"><td><b>${nomeCapo(r)}</b><br><span class="dett">${conStampa(r) ? `Stampa ${TECNICHE[r.tecnica]}${r.tecnica === 'seri' ? ` ${r.colori} col.` : ''} · ${descrStampa(r)}` : tecnicheAttive().length ? 'Senza stampa' : ''}</span><br><span class="dett">${r.q} × ${euro(c.pezzo)}</span></td><td>${euro(c.pezzo * r.q)}</td></tr>`; }).join('')}
       ${fisso ? `<tr><td>Telai serigrafia (una tantum)</td><td>${euro(fisso)}</td></tr>` : ''}
     </table>
     <div class="tot"><span>Totale IVA esclusa<br><span class="dett">${o.tot} pezzi</span></span><span class="num">${euro(o.totale)}</span></div>
@@ -776,61 +794,85 @@ function esci() {
 let L, schedaL = 'capi', cambiatiL = new Set(), conferma = false;
 const leggi = v => Math.round((parseFloat(String(v).replace(',', '.')) || 0) * 100) / 100;
 const campoPrezzo = (val, attr) => `<span class="prezzo-in"><input inputmode="decimal" value="${val.toFixed(2).replace('.', ',')}" ${attr}><span>€</span></span>`;
-const NOMI_T = { dtf: 'DTF', seri: 'Serigrafia', ricamo: 'Ricamo' };
-function apriListino() { L = listinoOra(); cambiatiL.clear(); conferma = false; vai('listino'); }
+const PREF = { capi: 'c', stampa: 's', scaglioni: 'g' };
+const esc = v => String(v).replace(/"/g, '&quot;');
+let L0;
+function apriListino() { L = listinoOra(); L0 = listinoOra(); cambiatiL.clear(); conferma = false; vai('listino'); }
 document.getElementById('l-schede').onclick = e => { const b = e.target.closest('button'); if (!b) return; schedaL = b.dataset.s; document.querySelectorAll('#l-schede button').forEach(x => x.classList.toggle('on', x === b)); disegnaListino(); };
-function segnaL(chiave, el) { cambiatiL.add(chiave); el.closest('.t-riga').classList.add('cambiato'); contaL(); }
 function contaL() {
   const b = document.getElementById('l-salva'), n = cambiatiL.size; conferma = false;
   b.disabled = !n; b.textContent = n ? `Salva ${n} ${n === 1 ? 'modifica' : 'modifiche'}` : 'Nessuna modifica';
   document.getElementById('listino-indietro').textContent = '← Banco';
 }
+// una riga è "cambiata" se è diversa dal listino salvato
+function uguali(tipo, x, o) {
+  if (tipo === 'capi') return x.nome === o.nome && x.modello === o.modello && x.base === o.base;
+  if (tipo === 'stampa') return x.nome === o.nome && x.S === o.S && x.M === o.M && x.L === o.L;
+  return x.soglia === o.soglia && x.delta === o.delta;
+}
+const cambiato = (tipo, i) => { const x = L[tipo][i], o = L0[tipo][i]; return !o || x.nuovo || x.daEliminare || !uguali(tipo, x, o); };
+function riconta() { cambiatiL.clear(); for (const tipo in PREF) L[tipo].forEach((x, i) => { if (!x.eliminato && cambiato(tipo, i)) cambiatiL.add(PREF[tipo] + i); }); }
+function segna(tipo, i, el) { riconta(); el.closest('.t-riga').classList.toggle('cambiato', cambiatiL.has(PREF[tipo] + i)); contaL(); }
+const vuota = (tipo, x) => tipo === 'scaglioni' ? !x.soglia : !String(x.nome).trim();
+const ridisegna = () => { riconta(); disegnaListino(); contaL(); };
+function apriRiga(tipo, i) { L[tipo][i].modifica = true; disegnaListino(); const el = document.getElementById(`m-${tipo}-${i}`); if (el) { el.focus(); el.select(); } }
+function fineRiga(tipo, i) { const x = L[tipo][i]; x.modifica = false; if (x.nuovo && vuota(tipo, x)) L[tipo].splice(i, 1); ridisegna(); }
+function eliminaRiga(tipo, i) { const x = L[tipo][i]; if (x.nuovo) L[tipo].splice(i, 1); else { x.modifica = false; x.daEliminare = true; } ridisegna(); }
+function annullaRiga(tipo, i) { L[tipo][i].daEliminare = false; ridisegna(); }
+function aggiungiRiga(tipo) {
+  const nuova = { capi: { id: L.capi.length, nome: '', modello: '', base: 0 }, stampa: { k: 't' + Date.now(), nome: '', S: 0, M: 0, L: 0 }, scaglioni: { soglia: 0, delta: 0 } }[tipo];
+  L[tipo].push({ ...nuova, nuovo: true }); ridisegna();
+  const el = document.getElementById(`m-${tipo}-${L[tipo].length - 1}`); if (el) el.focus();
+}
+// la stessa riga per le tre schede: tocchi il titolo → campi + "✎ Fine" + "Elimina"; si cancella solo al Salva
+function rigaL(tipo, x, i, { titolo, sotto, campi, destra, cosa, tre }) {
+  if (x.eliminato) return '';
+  const cls = `t-riga ${tre ? 'tre' : ''} ${cambiatiL.has(PREF[tipo] + i) ? 'cambiato' : ''} ${x.daEliminare ? 'da-eliminare' : ''}`;
+  const sinistra = x.daEliminare
+    ? `<strong>${titolo}<i class="pallino"></i></strong><small>Verrà eliminato quando salvi · <button class="annulla" onclick="annullaRiga('${tipo}',${i})">Annulla</button></small>`
+    : x.nuovo || x.modifica
+    ? `${campi}<div class="azioni-riga"><button class="matita-on" onclick="fineRiga('${tipo}',${i})">✎ Fine</button><button class="elimina" onclick="eliminaRiga('${tipo}',${i})">Elimina ${cosa}</button></div>`
+    : `<button class="nome-btn" title="Tocca per modificare" onclick="apriRiga('${tipo}',${i})"><strong>${titolo}<i class="pallino"></i><span class="matita-n">✎</span></strong>${sotto ? `<small>${sotto}</small>` : ''}</button>`;
+  return `<div class="${cls}"><div>${sinistra}</div>${destra(x.daEliminare ? 'disabled' : '')}</div>`;
+}
+const campoDelta = (val, attr) => `<span class="prezzo-in"><input inputmode="text" value="${val.toFixed(2).replace('.', ',')}" ${attr}><span>€</span></span>`;
 function disegnaListino() {
-  const c = document.getElementById('l-corpo'), riga = k => `t-riga ${cambiatiL.has(k) ? 'cambiato' : ''}`;
-  if (schedaL === 'capi') c.innerHTML = `<div class="tabella">${L.capi.map((x, i) => x.eliminato ? '' : `
-    <div class="${riga('c' + i)} ${x.daEliminare ? 'da-eliminare' : ''}"><div>${x.daEliminare
-      ? `<strong>${x.nome || 'Nuovo capo'}<i class="pallino"></i></strong><small>Verrà eliminato quando salvi · <button class="annulla" onclick="annullaElimina(${i})">Annulla</button></small>`
-      : x.nuovo || x.modifica
-      ? `<input class="nome" id="nome-${i}" placeholder="Nome, es. Felpa" value="${x.nome.replace(/"/g, '&quot;')}" oninput="L.capi[${i}].nome=this.value;segnaCapo(${i},this)"><input class="nome" placeholder="Modello, es. Cappuccio 330 g" value="${x.modello.replace(/"/g, '&quot;')}" oninput="L.capi[${i}].modello=this.value;segnaCapo(${i},this)">
-         <div class="azioni-riga"><button class="matita-on" onclick="fineModifica(${i})">✎ Fine</button><button class="elimina" onclick="eliminaCapo(${i})">Elimina capo</button></div>`
-      : `<button class="nome-btn" title="Tocca per cambiare nome e modello" onclick="modificaNome(${i})"><strong>${x.nome}<i class="pallino"></i><span class="matita-n">✎</span></strong><small>${x.modello}</small></button>`}</div>
-    ${campoPrezzo(x.base, `${x.daEliminare ? 'disabled' : ''} oninput="L.capi[${i}].base=leggi(this.value);segnaCapo(${i},this)"`)}</div>`).join('')}</div>
-    <button class="link" style="margin-top:12px" onclick="L.capi.push({id:L.capi.length,nome:'',modello:'',base:0,nuovo:true});cambiatiL.add('c'+(L.capi.length-1));disegnaListino();contaL()">+ Aggiungi capo</button>
+  const c = document.getElementById('l-corpo');
+  if (schedaL === 'capi') c.innerHTML = `<div class="tabella">${L.capi.map((x, i) => rigaL('capi', x, i, {
+      titolo: x.nome || 'Nuovo capo', sotto: x.modello, cosa: 'capo',
+      campi: `<input class="nome" id="m-capi-${i}" placeholder="Nome, es. Felpa" value="${esc(x.nome)}" oninput="L.capi[${i}].nome=this.value;segna('capi',${i},this)"><input class="nome" placeholder="Modello, es. Cappuccio 330 g" value="${esc(x.modello)}" oninput="L.capi[${i}].modello=this.value;segna('capi',${i},this)">`,
+      destra: d => campoPrezzo(x.base, `${d} oninput="L.capi[${i}].base=leggi(this.value);segna('capi',${i},this)"`) })).join('')}</div>
+    <button class="link" style="margin-top:12px" onclick="aggiungiRiga('capi')">+ Aggiungi capo</button>
     <p class="spiega" style="margin-top:8px">Prezzo del capo per 50 pezzi. Gli altri scaglioni si calcolano da soli.</p>`;
-  if (schedaL === 'stampa') c.innerHTML = `<div class="tabella"><div class="t-testa"><span>Tecnica · per posizione</span><span>Piccola</span><span>Media</span><span>Grande</span></div>${Object.keys(L.stampa).map(k => `
-    <div class="${riga('s' + k)} tre"><div><strong>${NOMI_T[k]}<i class="pallino"></i></strong></div>
-    ${['S', 'M', 'L'].map(g => campoPrezzo(L.stampa[k][g], `oninput="L.stampa['${k}']['${g}']=leggi(this.value);segnaL('s${k}',this)"`)).join('')}</div>`).join('')}</div>
-    <p class="spiega" style="margin-top:12px">Serigrafia: + telaio da 25,00 € per colore e posizione, una volta sola.</p>`;
-  if (schedaL === 'scaglioni') c.innerHTML = `<div class="tabella">${L.scaglioni.map((s, i) => `
-    <div class="${riga('g' + i)}"><div><strong>Da ${s[0]} pezzi<i class="pallino"></i></strong><small>${s[1] === 0 ? 'prezzo di listino' : s[1] > 0 ? 'più caro del listino' : 'sconto sul listino'}</small></div>
-    ${campoPrezzo(s[1], `oninput="L.scaglioni[${i}][1]=leggi(this.value);segnaL('g${i}',this)"`)}</div>`).join('')}</div>
-    <p class="spiega" style="margin-top:12px">Quanto cambia il prezzo di ogni capo, al pezzo, in base ai pezzi totali dell'ordine. Uno sconto si scrive col meno: −1,50. Sotto i 30 pezzi: privato, capo +50%.</p>`;
+  if (schedaL === 'stampa') {
+    const attive = L.stampa.filter(x => !x.eliminato && !x.daEliminare).length;
+    c.innerHTML = `<div class="tabella">${attive || L.stampa.some(x => x.daEliminare) ? `<div class="t-testa"><span>Tecnica · per posizione</span><span>Piccola</span><span>Media</span><span>Grande</span></div>` : ''}${L.stampa.map((x, i) => rigaL('stampa', x, i, {
+      titolo: x.nome || 'Nuova tecnica', sotto: x.k === 'seri' ? 'più i telai, per colore' : '', cosa: 'tecnica', tre: true,
+      campi: `<input class="nome" id="m-stampa-${i}" placeholder="Nome, es. Sublimazione" value="${esc(x.nome)}" oninput="L.stampa[${i}].nome=this.value;segna('stampa',${i},this)">`,
+      destra: d => ['S', 'M', 'L'].map(g => campoPrezzo(x[g], `${d} oninput="L.stampa[${i}]['${g}']=leggi(this.value);segna('stampa',${i},this)"`)).join('') })).join('')}</div>
+    <button class="link" style="margin-top:12px" onclick="aggiungiRiga('stampa')">+ Aggiungi tecnica</button>
+    <p class="spiega" style="margin-top:8px">${attive ? 'Prezzo per ogni posizione stampata. Serigrafia: + telaio da 25,00 € per colore e posizione, una volta sola.' : 'Nessuna tecnica: il negozio non personalizza, e nei preventivi il passo della stampa viene saltato.'}</p>`;
+  }
+  if (schedaL === 'scaglioni') {
+    const validi = L.scaglioni.filter(x => !x.daEliminare && x.soglia).map(x => x.soglia), primo = validi.length ? Math.min(...validi) : 0;
+    c.innerHTML = `<div class="tabella">${L.scaglioni.map((x, i) => rigaL('scaglioni', x, i, {
+      titolo: `Da ${x.soglia || '…'} pezzi`, sotto: x.delta === 0 ? 'prezzo di listino' : x.delta > 0 ? 'più caro del listino' : 'sconto sul listino', cosa: 'scaglione',
+      campi: `<span class="soglia-in">Da <input class="nome corto" id="m-scaglioni-${i}" inputmode="numeric" placeholder="30" value="${x.soglia || ''}" oninput="L.scaglioni[${i}].soglia=parseInt(this.value,10)||0;segna('scaglioni',${i},this)"> pezzi</span>`,
+      destra: d => campoDelta(x.delta, `${d} oninput="L.scaglioni[${i}].delta=leggi(this.value);segna('scaglioni',${i},this)"`) })).join('')}</div>
+    <button class="link" style="margin-top:12px" onclick="aggiungiRiga('scaglioni')">+ Aggiungi scaglione</button>
+    <p class="spiega" style="margin-top:8px">${primo ? `Quanto cambia il prezzo di ogni capo, al pezzo, in base ai pezzi totali dell'ordine. Uno sconto si scrive col meno: −1,50. Sotto i ${primo} pezzi: privato, capo +50%.` : 'Nessuno scaglione: tutti pagano il prezzo di listino, senza distinzione tra ingrosso e privato.'}</p>`;
+  }
 }
-// una riga dei capi è "cambiata" se è diversa dal listino salvato
-function capoCambiato(i) {
-  const x = L.capi[i], o = CAPI[i];
-  return !o || x.nuovo || x.daEliminare || x.nome !== o.nome || x.modello !== o.modello || x.base !== o.base;
-}
-function ricontaCapi() { [...cambiatiL].filter(k => k[0] === 'c').forEach(k => cambiatiL.delete(k)); L.capi.forEach((x, i) => { if (!x.eliminato && capoCambiato(i)) cambiatiL.add('c' + i); }); }
-function segnaCapo(i, el) {
-  if (capoCambiato(i)) cambiatiL.add('c' + i); else cambiatiL.delete('c' + i);
-  el.closest('.t-riga').classList.toggle('cambiato', cambiatiL.has('c' + i)); contaL();
-}
-function fineModifica(i) { L.capi[i].modifica = false; if (L.capi[i].nuovo && !L.capi[i].nome.trim()) L.capi.splice(i, 1); ricontaCapi(); disegnaListino(); contaL(); }
-function eliminaCapo(i) {
-  if (L.capi[i].nuovo) { L.capi.splice(i, 1); ricontaCapi(); disegnaListino(); contaL(); return; }
-  L.capi[i].modifica = false; L.capi[i].daEliminare = true; cambiatiL.add('c' + i); disegnaListino(); contaL();
-}
-function annullaElimina(i) { L.capi[i].daEliminare = false; ricontaCapi(); disegnaListino(); contaL(); }
-function modificaNome(i) { L.capi[i].modifica = true; disegnaListino(); const el = document.getElementById('nome-' + i); if (el) { el.focus(); el.select(); } }
 function salvaListino() {
-  // un capo esistente lasciato senza nome tiene quello di prima; uno nuovo senza nome non si salva
-  L.capi = L.capi.filter(x => !x.nuovo || x.nome.trim())
-    .map(({ nuovo, modifica, daEliminare, ...x }) => ({ ...x, eliminato: x.eliminato || !!daEliminare, nome: x.nome.trim() || (CAPI[x.id] ? CAPI[x.id].nome : ''), modello: x.modello.trim() || '—' })).map((x, i) => ({ ...x, id: i }));
+  // una riga nuova lasciata vuota non si salva; una esistente senza nome tiene quello di prima
+  const ok = tipo => x => !(x.nuovo && vuota(tipo, x));
+  L.capi = L.capi.filter(ok('capi')).map(({ nuovo, modifica, daEliminare, ...x }) => ({ ...x, eliminato: x.eliminato || !!daEliminare, nome: x.nome.trim() || (CAPI[x.id] ? CAPI[x.id].nome : ''), modello: x.modello.trim() || '—' })).map((x, i) => ({ ...x, id: i }));
+  L.stampa = L.stampa.filter(ok('stampa')).map(({ nuovo, modifica, daEliminare, ...x }) => ({ ...x, eliminato: x.eliminato || !!daEliminare, nome: x.nome.trim() || (STAMPA[x.k] ? STAMPA[x.k].nome : 'Tecnica') }));
+  L.scaglioni = L.scaglioni.filter(x => ok('scaglioni')(x) && !x.daEliminare).map(x => ({ soglia: Math.max(1, x.soglia | 0), delta: x.delta }));
   applicaListino(L);
   try { localStorage.setItem(KEY_L, JSON.stringify(listinoOra())); } catch (e) {}
-  const n = cambiatiL.size; cambiatiL.clear(); L = listinoOra(); disegnaListino(); contaL();
-  avviso(`${n === 1 ? 'Modifica salvata' : n + ' modifiche salvate'}: i nuovi preventivi usano questi prezzi.`);
+  const n = cambiatiL.size; cambiatiL.clear(); L = listinoOra(); L0 = listinoOra(); disegnaListino(); contaL();
+  avviso(`${n === 1 ? 'Modifica salvata' : n + ' modifiche salvate'}: i nuovi preventivi usano questo listino.`);
 }
 function chiudiListino() {
   if (cambiatiL.size && !conferma) {
