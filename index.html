@@ -276,6 +276,25 @@
   .prezzo-in span { color: var(--sec); font-size: 14px; }
   .cambiato .prezzo-in { box-shadow: inset 0 0 0 1px var(--luce); }
 
+  /* anteprime di invio: fogli dal basso */
+  .velo { position: fixed; inset: 0; display: flex; justify-content: center; align-items: flex-end; background: rgba(0,0,0,.55); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 20; }
+  .velo.on { opacity: 1; pointer-events: auto; }
+  .foglio-b { background: var(--card); width: 100%; max-width: 520px; max-height: 92%; overflow-y: auto; border-radius: 20px 20px 0 0; padding: 20px 16px calc(20px + env(safe-area-inset-bottom)); transform: translateY(30px); transition: transform .2s; }
+  .velo.on .foglio-b { transform: none; }
+  .foglio-b h2 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; font-size: 26px; line-height: 1; margin-bottom: 12px; }
+  .chat { background: #EFEAE2; border-radius: 14px; padding: 14px 12px; max-height: 52vh; overflow-y: auto; }
+  .bolla { background: #D9FDD3; border-radius: 10px 10px 2px 10px; padding: 9px 11px 6px; margin-left: 18px; font-size: 14.5px; line-height: 1.45; color: #111b21; white-space: pre-wrap; box-shadow: 0 1px 0 rgba(0,0,0,.08); }
+  .bolla .ora { display: block; text-align: right; font-size: 11px; color: #667781; margin-top: 2px; }
+  .mail { border: 1px solid var(--el); border-radius: 12px; overflow: hidden; font-size: 14px; }
+  .mail-testa { background: var(--el); padding: 10px 12px; }
+  .mail-testa div { color: var(--sec); }
+  .mail-testa b { color: var(--testo); font-weight: 600; }
+  .mail-corpo { padding: 12px; white-space: pre-wrap; max-height: 40vh; overflow-y: auto; line-height: 1.5; }
+  .carta { background: var(--el); border-radius: 12px; padding: 14px; max-height: 56vh; overflow-y: auto; }
+  .nota-demo { text-align: center; font-size: 13px; color: var(--sec); margin: 14px 0 10px; }
+  .chiudi-b { width: 100%; padding: 16px; border-radius: 14px; background: var(--el); color: var(--testo); font-weight: 600; font-size: 15px; }
+  .chiudi-b:hover { background: #2C2F37; }
+
   @media (max-width: 560px) {
     .t-testa, .t-riga.tre { grid-template-columns: repeat(3, 1fr); }
     .t-testa span { width: auto; }
@@ -449,6 +468,35 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- anteprime di invio: nella demo non parte niente -->
+<div class="velo" id="veloWA">
+  <div class="foglio-b">
+    <h2>Ecco cosa riceverebbe il tuo cliente</h2>
+    <div class="chat"><div class="bolla" id="bollaWA"></div></div>
+    <p class="nota-demo">Nella demo non parte nessun messaggio.</p>
+    <button class="chiudi-b" data-chiudi>Chiudi</button>
+  </div>
+</div>
+<div class="velo" id="veloMail">
+  <div class="foglio-b">
+    <h2>Ecco la mail che riceverebbe il tuo cliente</h2>
+    <div class="mail">
+      <div class="mail-testa"><div>A: <b id="aMail"></b></div><div>Oggetto: <b id="oggettoMail"></b></div></div>
+      <div class="mail-corpo" id="corpoMail"></div>
+    </div>
+    <p class="nota-demo">Nella demo non parte nessuna mail.</p>
+    <button class="chiudi-b" data-chiudi>Chiudi</button>
+  </div>
+</div>
+<div class="velo" id="veloPDF">
+  <div class="foglio-b">
+    <h2>Ecco il PDF che riceverebbe il tuo cliente</h2>
+    <div class="carta"><div class="foglio" id="paginaPDF"></div></div>
+    <p class="nota-demo">Nella demo non si scarica nessun file.</p>
+    <button class="chiudi-b" data-chiudi>Chiudi</button>
+  </div>
+</div>
 
 <script>
 /* ===================== DATI FINTI (solo per provare) ===================== */
@@ -776,12 +824,46 @@ function disegnaFoglio() {
 function salva() {
   if (!P.cliente.trim()) { cliente.focus(); avviso('Scrivi il nome del cliente'); return; }
   const dati = { cliente: P.cliente.trim(), quando: Date.now(), righe: JSON.parse(JSON.stringify(P.righe)) };
+  const n = String(P.indice !== null ? P.indice + 40 : salvati.length + 40).padStart(4, '0');
   if (P.indice !== null) salvati[P.indice] = dati; else salvati.push(dati);
   memorizza();
-  const come = { wa: 'Pronto per WhatsApp', mail: 'Pronto per l’email', pdf: 'PDF pronto' }[P.canale];
-  vai('banco');
-  avviso(`Salvato. ${come} (nella bozza non parte niente).`);
+  // demo: niente WhatsApp, mail o file veri, solo l'anteprima di cosa riceverebbe il cliente
+  ({ wa: anteprimaWA, mail: anteprimaMail, pdf: anteprimaPDF })[P.canale](n);
 }
+function righeTesto() {
+  const o = calcolaOrdine(P), fisso = o.righe.reduce((s, c) => s + c.fisso, 0);
+  return { o, righe: [
+    ...P.righe.map((r, k) => `• ${nomeCapo(r)} – ${r.q} pz × ${euro(o.righe[k].pezzo)} = ${euro(o.righe[k].pezzo * r.q)}` + (conStampa(r) ? `\n   Stampa ${TECNICHE[r.tecnica]}${r.tecnica === 'seri' ? ` ${r.colori} col.` : ''}: ${descrStampa(r)}` : '')),
+    ...(fisso ? [`• Telai serigrafia (una tantum): ${euro(fisso)}`] : []),
+  ] };
+}
+function anteprimaWA(n) {
+  const { o, righe } = righeTesto();
+  const testo = [`*Preventivo n. ${n} – Stamperia Demo*`, `Per: ${P.cliente.trim()}`, '', ...righe, '', `*Totale: ${euro(o.totale)}* (IVA esclusa)`, 'Valido 30 giorni'].join('\n');
+  const html = testo.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\*([^*\n]+)\*/g, '<b>$1</b>');
+  const ora = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('bollaWA').innerHTML = html + '<span class="ora">' + ora + ' ✓✓</span>';
+  document.getElementById('veloWA').classList.add('on');
+}
+function anteprimaMail(n) {
+  const { o, righe } = righeTesto();
+  document.getElementById('aMail').textContent = P.cliente.trim();
+  document.getElementById('oggettoMail').textContent = `Preventivo n. ${n} – Stamperia Demo`;
+  document.getElementById('corpoMail').textContent = ['Buongiorno,', 'le invio il preventivo richiesto.', '', ...righe, '', `Totale: ${euro(o.totale)} (IVA esclusa)`, 'Valido 30 giorni.', '', 'Cordiali saluti', 'Stamperia Demo'].join('\n');
+  document.getElementById('veloMail').classList.add('on');
+}
+function anteprimaPDF() {
+  document.getElementById('paginaPDF').innerHTML = document.getElementById('foglio').innerHTML;
+  document.getElementById('veloPDF').classList.add('on');
+}
+// chiudendo l'anteprima si torna al banco, dove il preventivo è già in lista
+function chiudiAnteprima() {
+  if (!document.querySelector('.velo.on')) return;
+  document.querySelectorAll('.velo.on').forEach(v => v.classList.remove('on'));
+  vai('banco'); avviso('Preventivo salvato.');
+}
+document.querySelectorAll('[data-chiudi]').forEach(b => b.addEventListener('click', chiudiAnteprima));
+document.querySelectorAll('.velo').forEach(v => v.addEventListener('click', e => { if (e.target === v) chiudiAnteprima(); }));
 
 function entra() { vai('banco'); }
 function esci() {
