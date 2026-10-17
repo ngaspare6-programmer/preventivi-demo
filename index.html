@@ -295,7 +295,68 @@
   .chiudi-b { width: 100%; padding: 16px; border-radius: 14px; background: var(--el); color: var(--testo); font-weight: 600; font-size: 15px; }
   .chiudi-b:hover { background: #2C2F37; }
 
+  /* capi: la vetrina del catalogo */
+  .avviso-cat { font-size: 12px; color: var(--sec); background: var(--card); border-radius: 10px; padding: 8px 10px; }
+  .filtri-c { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+  .filtri-c button { background: var(--card); color: var(--sec); padding: 8px 14px; border-radius: 99px; font-size: 13px; white-space: nowrap; flex: none; }
+  .filtri-c button.on { background: var(--testo); color: var(--bg); font-weight: 600; }
+  .filtri-c.forn button.on { background: var(--el); color: var(--testo); box-shadow: inset 0 0 0 2px var(--luce); }
+  .griglia { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .carta-c { min-width: 0; background: var(--card); border: 2px solid transparent; border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; }
+  .carta-c .foto { width: 100%; height: 96px; border-radius: 10px; background: #E9E8E4; display: flex; align-items: center; justify-content: center; }
+  .carta-c .foto svg { width: 72px; height: 72px; stroke: rgba(0,0,0,.35); stroke-width: 1.2; stroke-linejoin: round; }
+  .carta-c .marca { display: block; font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--sec); }
+  .carta-c b { display: block; font-size: 14px; }
+  .carta-c .cod { display: block; font-size: 12px; color: var(--sec); }
+  .carta-c .riga-p { display: flex; justify-content: space-between; align-items: baseline; margin-top: auto; }
+  .carta-c .riga-p .num { font-size: 20px; }
+  .carta-c .riga-p small { color: var(--sec); font-size: 11px; }
+  .carta-c.sel { border-color: var(--luce); }
+  .carta-c.sel b { color: var(--luce); }
+  .carta-c .mini-stepper { margin-top: auto; display: flex; background: var(--el); }
+  .carta-c .mini-stepper button { width: 34px; height: 34px; background: var(--card); font-size: 18px; }
+  .carta-c .mini-stepper input { flex: 1; min-width: 0; width: auto; }
+  .griglia .altri { grid-column: 1 / -1; text-align: center; padding: 8px; font-size: 12px; color: var(--sec); }
+
+  /* PDF nuovo: intestazione, una riga per capo con l'immagine */
+  .foglio .pdf-testa { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding-bottom: 12px; border-bottom: 2px solid #111214; }
+  .foglio .pdf-titolo { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: .04em; line-height: 1; }
+  .foglio .pdf-sotto { color: #4A4D55; font-size: 11px; margin-top: 2px; }
+  .foglio .pdf-ditta { display: flex; align-items: center; gap: 8px; text-align: right; white-space: nowrap; }
+  .foglio .pdf-ditta b { display: block; font-size: 13px; }
+  .foglio .pdf-ditta small { color: #4A4D55; font-size: 11px; }
+  .foglio .pdf-ditta .logo { width: 34px; height: 34px; border-radius: 8px; background: #166534; color: #fff; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+  .foglio .pdf-per { margin: 10px 0 4px; color: #4A4D55; }
+  .foglio .pdf-per b { color: #111214; }
+  .foglio .pdf-sez { margin-top: 8px; }
+  .foglio .pdf-r { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid #DEDCD5; }
+  .foglio .pdf-img { width: 36px; height: 36px; flex: none; border-radius: 6px; background: #E9E8E4; display: flex; align-items: center; justify-content: center; }
+  .foglio .pdf-img svg { width: 30px; height: 30px; stroke: rgba(0,0,0,.35); stroke-width: 1.2; stroke-linejoin: round; }
+  .foglio .pdf-nome { flex: 1; min-width: 0; }
+  .foglio .pdf-nome b { display: block; font-weight: 600; }
+  .foglio .pdf-nome small { display: block; color: #4A4D55; font-size: 11px; }
+  .foglio .pdf-imp { text-align: right; white-space: nowrap; }
+  .foglio .pdf-imp small { display: block; color: #4A4D55; font-size: 11px; }
+  .foglio .pdf-imp .num { font-size: 15px; }
+  .foglio .pdf-tot { display: flex; justify-content: space-between; align-items: baseline; border-top: 2px solid #111214; padding-top: 10px; margin-top: 16px; font-weight: 700; }
+  .foglio .pdf-tot .num { font-size: 22px; }
+  .foglio .pdf-nota { color: #4A4D55; font-size: 11px; margin-top: 4px; }
+  /* allegato PDF in chat e in mail */
+  .allegato { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px; border-radius: 8px; background: rgba(0,0,0,.06); text-align: left; margin-bottom: 6px; cursor: pointer; }
+  .allegato .pdf-ico { width: 34px; height: 40px; flex: none; border-radius: 4px; background: #DC2626; color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; }
+  .allegato b { display: block; font-size: 13.5px; color: #111b21; }
+  .allegato small { font-size: 12px; color: #667781; }
+  .mail-alleg { padding: 0 12px 12px; }
+  .mail-alleg .allegato { background: var(--el); }
+  .mail-alleg .allegato b { color: var(--testo); }
+  .mail-alleg .allegato small { color: var(--sec); }
+  .canale span b { display: block; font-weight: 600; }
+  .canale span small { display: block; color: var(--sec); font-size: 12px; }
+
   @media (max-width: 560px) {
+    .griglia { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .foglio .pdf-ditta small { display: none; }
+    .foglio .pdf-testa > div:first-child { min-width: 0; }
     .t-testa, .t-riga.tre { grid-template-columns: repeat(3, 1fr); }
     .t-testa span { width: auto; }
     .t-testa span:first-child, .t-riga.tre > div:first-child { grid-column: 1 / -1; }
@@ -322,6 +383,14 @@
   <symbol id="i-wa" viewBox="0 0 24 24"><path d="M4 20l1.3-4A8 8 0 1112 20a8 8 0 01-4-1z"/></symbol>
   <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
   <symbol id="i-excel" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 8l6 8M15 8l-6 8"/></symbol>
+  <symbol id="c-maglietta" viewBox="0 0 64 64"><path d="M22 8l-14 8 5 11 6-3v32h26V24l6 3 5-11-14-8c-1 4-5 7-10 7s-9-3-10-7z"/></symbol>
+  <symbol id="c-polo" viewBox="0 0 64 64"><path d="M22 8l-14 8 5 11 6-3v32h26V24l6 3 5-11-14-8-10 6z"/><path d="M32 14v10M27 9l5 5 5-5" fill="none"/></symbol>
+  <symbol id="c-canotta" viewBox="0 0 64 64"><path d="M22 6v8c0 6-4 10-4 16v26h28V30c0-6-4-10-4-16V6c-3 6-17 6-20 0z"/></symbol>
+  <symbol id="c-felpa" viewBox="0 0 64 64"><path d="M24 10c0-4 16-4 16 0l14 8 4 34h-8l-2-24v28H16V28l-2 24H6l4-34z"/><path d="M24 10c2 6 14 6 16 0M28 44h8" fill="none"/></symbol>
+  <symbol id="c-zip" viewBox="0 0 64 64"><path d="M24 10c0-4 16-4 16 0l14 8 4 34h-8l-2-24v28H16V28l-2 24H6l4-34z"/><path d="M32 14v42" fill="none"/></symbol>
+  <symbol id="c-pantaloni" viewBox="0 0 64 64"><path d="M18 6h28l4 52h-12l-6-34-6 34H14z"/><path d="M18 12h28" fill="none"/></symbol>
+  <symbol id="c-cappello" viewBox="0 0 64 64"><path d="M10 40c0-14 10-24 22-24s22 10 22 24z"/><path d="M10 40h44l6 6H20z"/></symbol>
+  <symbol id="c-borsa" viewBox="0 0 64 64"><path d="M12 22h40l-3 36H15z"/><path d="M24 22v-6a8 8 0 0116 0v6" fill="none"/></symbol>
   <symbol id="i-pdf" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13h6M9 17h6"/></symbol>
 </svg>
 
@@ -404,9 +473,12 @@
   <section class="vista" id="v-capo">
     <div class="testa"><button class="indietro" onclick="vai('quantita')">← Pezzi</button><span class="contesto" id="ctx-capo"></span></div>
     <div class="passi" data-passo="2"></div>
-    <div class="domanda"><div class="titolo">Che capi?</div><span>Anche più di uno. Prezzo del capo al pezzo, stampa esclusa.</span></div>
-    <input class="cerca" id="cerca" placeholder="Cerca: felpa, polo, 330…">
-    <div class="listino" id="listino"></div>
+    <div class="domanda"><div class="titolo">Che capi?</div><span id="capi-sotto">Tocca un capo per sceglierlo.</span></div>
+    <input class="cerca" id="cerca" placeholder="Cerca: felpa, Marca B, cod. A-FLP…">
+    <div class="filtri-c" id="filtro-gruppi"></div>
+    <div class="filtri-c forn" id="filtro-forn"></div>
+    <p class="avviso-cat">Disegni, marche e codici di prova: qui andrà il catalogo dei fornitori.</p>
+    <div class="griglia" id="listino"></div>
     <div class="vuota" id="nessuno" style="display:none">Nessun capo trovato</div>
     <button class="primario" id="avanti-capo" onclick="iniziaStampe()" disabled>Scegli almeno un capo</button>
   </section>
@@ -484,6 +556,7 @@
     <div class="mail">
       <div class="mail-testa"><div>A: <b id="aMail"></b></div><div>Oggetto: <b id="oggettoMail"></b></div></div>
       <div class="mail-corpo" id="corpoMail"></div>
+      <div class="mail-alleg" id="allegMail"></div>
     </div>
     <p class="nota-demo">Nella demo non parte nessuna mail.</p>
     <button class="chiudi-b" data-chiudi>Chiudi</button>
@@ -500,12 +573,26 @@
 
 <script>
 /* ===================== DATI FINTI (solo per provare) ===================== */
-const CAPI = [ // nome, modello, prezzo base del capo (ingrosso, 50 pezzi)
-  ['Maglietta', 'Leggera 150 g', 3.90], ['Maglietta', 'Classica 190 g', 4.90], ['Maglietta', 'Pesante 240 g', 6.50],
-  ['Polo', 'Piqué 210 g', 9.50], ['Canotta', 'Sportiva 160 g', 3.50], ['Camicia', 'Oxford', 15.90],
-  ['Felpa', 'Girocollo 280 g', 10.90], ['Felpa', 'Cappuccio 330 g', 13.50], ['Felpa con zip', 'Cappuccio 330 g', 16.90],
-  ['Pantaloni tuta', 'Felpati 300 g', 12.90], ['Cappellino', 'Baseball', 3.50], ['Shopper', 'Cotone 140 g', 1.90],
-].map(([nome, modello, base], i) => ({ id: i, nome, modello, base }));
+// catalogo FINTO: tre fornitori (una marca ciascuno), gruppi → tipi → modelli. Prezzo base = 50 pezzi, ingrosso
+const FORNITORI = ['Fornitore 1', 'Fornitore 2', 'Fornitore 3'];
+const MARCHE = ['Marca A', 'Marca B', 'Marca C'];
+const GRUPPI_C = [
+  { k: 'magliette', nome: 'Magliette', tipi: [['tshirt', 'T-shirt', 'maglietta', 3.2], ['polo', 'Polo', 'polo', 7.5], ['canotta', 'Canotta', 'canotta', 3.0]] },
+  { k: 'felpe', nome: 'Felpe', tipi: [['girocollo', 'Felpa girocollo', 'felpa', 9.5], ['cappuccio', 'Felpa cappuccio', 'felpa', 11.9], ['zip', 'Felpa zip', 'zip', 14.5]] },
+  { k: 'pantaloni', nome: 'Pantaloni', tipi: [['tuta', 'Pantaloni tuta', 'pantaloni', 10.9]] },
+  { k: 'accessori', nome: 'Accessori', tipi: [['cappellino', 'Cappellino', 'cappello', 2.9], ['shopper', 'Shopper', 'borsa', 1.6]] },
+];
+const MODELLI_F = [
+  [['Basic', '150 g', '#FFFFFF'], ['Classic', '190 g', '#F4E9D8']],
+  [['Heavy', '240 g', '#2E3036'], ['Organic', '180 g · cotone bio', '#C9D7C2']],
+  [['Premium', '220 g · pettinato', '#1E3A5F'], ['Oversize', '260 g', '#B8BCC2']],
+];
+const CAPI = [];
+GRUPPI_C.forEach(g => g.tipi.forEach(([k, tipo, icona, base]) => MODELLI_F.forEach((mods, f) => mods.forEach(([m, dett, colore], i) =>
+  CAPI.push({ id: CAPI.length, chiave: `${k}-${f}-${i}`, g: g.k, tipo, icona, f, marca: MARCHE[f], colore,
+    cod: `${'ABC'[f]}-${k.replace(/[aeiou]/g, '').slice(0, 3).toUpperCase()}-${String(i + 1).padStart(2, '0')}`,
+    nome: `${tipo} ${m}`, modello: dett, base: Math.round(base * (1 + f * 0.18 + i * 0.12) * 10) / 10 })))));
+const idCapo = chiave => CAPI.find(c => c.chiave === chiave).id;
 // sconto sul capo per scaglione (sui pezzi TOTALI dell'ordine); i privati pagano il capo +50%
 const SCAGLIONI = [[30, 1.40], [50, 0], [100, -1.50], [300, -2.50]];
 const TECNICHE = { nessuna: 'Nessuna', dtf: 'DTF', seri: 'Serigrafia', ricamo: 'Ricamo' };
@@ -523,9 +610,9 @@ const PACCHETTI = [
 ];
 const riga = (capo, q, tecnica, pos, colori = 1) => ({ capo, q, tecnica, colori, pos, pacchetto: -1, mano: false });
 const ESEMPI = [
-  { cliente: 'ASD Volley Esempio', quando: Date.now() - 3600e3, righe: [riga(7, 60, 'dtf', { cuore: 'S', retro: 'L' }), riga(1, 60, 'dtf', { cuore: 'S', retro: 'L' })] },
-  { cliente: 'Cliente al banco', quando: Date.now() - 7200e3, righe: [riga(1, 3, 'dtf', { petto: 'L' })] },
-  { cliente: 'Ditta Esempio Srl', quando: Date.now() - 86400e3, righe: [riga(3, 60, 'ricamo', { cuore: 'S' })] },
+  { cliente: 'ASD Volley Esempio', quando: Date.now() - 3600e3, righe: [riga(idCapo('cappuccio-1-0'), 60, 'dtf', { cuore: 'S', retro: 'L' }), riga(idCapo('tshirt-0-1'), 60, 'dtf', { cuore: 'S', retro: 'L' })] },
+  { cliente: 'Cliente al banco', quando: Date.now() - 7200e3, righe: [riga(idCapo('tshirt-0-1'), 3, 'dtf', { petto: 'L' })] },
+  { cliente: 'Ditta Esempio Srl', quando: Date.now() - 86400e3, righe: [riga(idCapo('polo-2-0'), 60, 'ricamo', { cuore: 'S' })] },
 ];
 
 /* ===================== CONTI ===================== */
@@ -534,6 +621,7 @@ const sogliaIngrosso = () => SCAGLIONI.length ? SCAGLIONI[0][0] : Infinity;
 const ingrosso = tot => tot >= sogliaIngrosso();
 const conStampa = r => r.tecnica && r.tecnica !== 'nessuna';
 const totPezzi = p => p.righe.reduce((s, r) => s + r.q, 0);
+const marcaCod = r => { const c = CAPI[r.capo]; return [c.marca, c.cod ? `Cod. ${c.cod}` : ''].filter(Boolean).join(' · '); };
 const nomeCapo = r => `${CAPI[r.capo].nome} ${CAPI[r.capo].modello.toLowerCase()}`;
 function prezzoCapo(capo, tot) {
   if (!SCAGLIONI.length) return capo.base;
@@ -560,10 +648,10 @@ const descrStampa = r => !conStampa(r) ? 'senza stampa' : Object.entries(r.pos).
 /* ===================== STATO ===================== */
 let P; // preventivo in lavorazione: { q, righe: [...], i: capo corrente, cliente, canale, indice }
 const R = () => P.righe[P.i];
-const KEY = 'preventivi-prova-2';
+const KEY = 'preventivi-prova-3';
 // listino: copia di partenza (per "Esci") e listino salvato in questo browser
-const KEY_L = 'listino-prova';
-const listinoOra = () => ({ capi: CAPI.map(c => ({ id: c.id, nome: c.nome, modello: c.modello, base: c.base, eliminato: !!c.eliminato })), stampa: Object.entries(STAMPA).map(([k, v]) => ({ k, nome: v.nome, S: v.S, M: v.M, L: v.L, eliminato: !!v.eliminato })), scaglioni: SCAGLIONI.map(([soglia, delta]) => ({ soglia, delta })) });
+const KEY_L = 'listino-prova-2';
+const listinoOra = () => ({ capi: CAPI.map(c => ({ ...c, eliminato: !!c.eliminato })), stampa: Object.entries(STAMPA).map(([k, v]) => ({ k, nome: v.nome, S: v.S, M: v.M, L: v.L, eliminato: !!v.eliminato })), scaglioni: SCAGLIONI.map(([soglia, delta]) => ({ soglia, delta })) });
 const LISTINO_ORIGINALE = listinoOra();
 function applicaListino(l) {
   l.capi.forEach(c => { if (CAPI[c.id]) Object.assign(CAPI[c.id], c); else CAPI.push({ ...c }); });
@@ -668,29 +756,34 @@ function cambiaQ(id, v) {
   const inp = document.querySelector(`[data-q="${id}"]`); if (inp && +inp.value !== r.q) inp.value = r.q;
   aggiornaCapi();
 }
+let filtroG = 'tutti', filtroF = -1;
+document.getElementById('filtro-gruppi').innerHTML = [['tutti', 'Tutti'], ...GRUPPI_C.map(g => [g.k, g.nome])].map(([k, n]) => `<button data-k="${k}" class="${k === 'tutti' ? 'on' : ''}">${n}</button>`).join('');
+document.getElementById('filtro-forn').innerHTML = [[-1, 'Tutti i fornitori'], ...FORNITORI.map((n, i) => [i, n])].map(([k, n]) => `<button data-f="${k}" class="${k === -1 ? 'on' : ''}">${n}</button>`).join('');
+document.getElementById('filtro-gruppi').onclick = e => { const b = e.target.closest('button'); if (!b) return; filtroG = b.dataset.k; e.currentTarget.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); disegnaCapo(); };
+document.getElementById('filtro-forn').onclick = e => { const b = e.target.closest('button'); if (!b) return; filtroF = +b.dataset.f; e.currentTarget.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); disegnaCapo(); };
+const disegnoCapo = c => `<svg viewBox="0 0 64 64"><use href="#c-${c.icona || 'maglietta'}" fill="${c.colore || '#FFFFFF'}"/></svg>`;
 function disegnaCapo() {
   const t = cerca.value.trim().toLowerCase();
-  const lista = CAPI.filter(c => !c.eliminato).filter(c => !t || (c.nome + ' ' + c.modello).toLowerCase().includes(t));
-  document.getElementById('listino').innerHTML = lista.map(c => {
+  const lista = CAPI.filter(c => !c.eliminato && (filtroG === 'tutti' || c.g === filtroG) && (filtroF < 0 || c.f === filtroF)
+    && (!t || `${c.nome} ${c.modello} ${c.marca || ''} ${c.cod || ''} ${c.tipo || ''}`.toLowerCase().includes(t)));
+  document.getElementById('listino').innerHTML = lista.slice(0, 12).map(c => {
     const r = rigaDi(c.id);
-    return `<div class="voce ${r ? 'sel' : ''}" onclick="togliMettiCapo(${c.id})">
-      <span class="scelto-check"></span>
-      <span class="chi"><strong>${c.nome}</strong><small>${c.modello}</small></span>
-      <span class="prezzo"><span class="num" data-p="${c.id}"></span><small>al pezzo</small></span>
-      ${r ? `<div class="pezzi" onclick="event.stopPropagation()">
-        <span>Pezzi</span>
-        <div class="mini-stepper"><button onclick="cambiaQ(${c.id}, rigaDi(${c.id}).q - 1)">−</button>
-        <input type="number" min="1" inputmode="numeric" data-q="${c.id}" value="${r.q}" oninput="cambiaQ(${c.id}, this.value)">
-        <button onclick="cambiaQ(${c.id}, rigaDi(${c.id}).q + 1)">+</button></div>
-      </div>` : ''}
+    return `<div class="carta-c ${r ? 'sel' : ''}" role="button" tabindex="0" onclick="togliMettiCapo(${c.id})">
+      <span class="foto">${disegnoCapo(c)}</span>
+      <span><span class="marca">${c.marca || '&nbsp;'}</span><b>${c.nome}</b><span class="cod">${c.cod ? `Cod. ${c.cod}` : c.modello}</span></span>
+      ${r ? `<div class="mini-stepper" onclick="event.stopPropagation()"><button onclick="cambiaQ(${c.id}, rigaDi(${c.id}).q - 1)">−</button>
+        <input type="number" min="1" inputmode="numeric" data-q="${c.id}" value="${r.q}" oninput="cambiaQ(${c.id}, this.value)" aria-label="Pezzi">
+        <button onclick="cambiaQ(${c.id}, rigaDi(${c.id}).q + 1)">+</button></div>`
+      : `<span class="riga-p"><span class="num" data-p="${c.id}"></span><small>al pezzo</small></span>`}
     </div>`;
-  }).join('');
+  }).join('') + (lista.length > 12 ? `<p class="altri">… e altri ${lista.length - 12}: usa i filtri o la ricerca</p>` : '');
   document.getElementById('listino').style.display = lista.length ? '' : 'none';
   document.getElementById('nessuno').style.display = lista.length ? 'none' : '';
   aggiornaCapi();
 }
 function aggiornaCapi() { // solo numeri: non ridisegna la lista, così il campo pezzi non perde il cursore
   const tot = totPerPrezzi();
+  document.getElementById('capi-sotto').textContent = `Tocca un capo per sceglierlo. Prezzo al pezzo per ${tot} ${tot === 1 ? 'pezzo' : 'pezzi'}, stampa esclusa.`;
   document.querySelectorAll('[data-p]').forEach(el => el.textContent = euro(prezzoCapo(CAPI[+el.dataset.p], tot)));
   cartellino(document.getElementById('ctx-capo'), tot);
   const n = P.righe.length, b = document.getElementById('avanti-capo');
@@ -765,7 +858,7 @@ function stampaIndietro() { if (P.i > 0) { P.i--; disegnaStampa(); window.scroll
 function stampaAvanti() { if (P.i < P.righe.length - 1) { P.i++; disegnaStampa(); window.scrollTo(0, 0); } else vai('riepilogo'); }
 
 /* ===================== 5 · RIEPILOGO ===================== */
-const CANALI = { wa: ['WhatsApp', 'i-wa', 'Salva e manda su WhatsApp'], mail: ['Email', 'i-mail', 'Salva e manda via email'], pdf: ['PDF da stampare', 'i-pdf', 'Salva e scarica il PDF'] };
+const CANALI = { wa: ['WhatsApp', 'i-wa', 'Salva e manda su WhatsApp', 'Messaggio con il PDF allegato'], mail: ['Email', 'i-mail', 'Salva e manda via email', 'Mail con il PDF allegato'], pdf: ['Scarica PDF', 'i-pdf', 'Salva e scarica il PDF', 'Da stampare o mandare a mano'] };
 const cliente = document.getElementById('cliente');
 cliente.oninput = () => { P.cliente = cliente.value; disegnaFoglio(); };
 function disegnaRiepilogo() {
@@ -800,62 +893,65 @@ function disegnaRiepilogo() {
       <span><strong>${nomeCapo(r)}</strong><small>${r.q} pz${conStampa(r) ? ` · ${TECNICHE[r.tecnica]} ${descrStampa(r)}` : tecnicheAttive().length ? ' · senza stampa' : ''}</small></span>
       <span class="num">${euro(o.righe[k].totale)}</span></button>`).join('')
     + `<button class="link" style="align-self:flex-start;font-size:13px" onclick="vai('capo')">+ Aggiungi o togli capi</button>`;
-  document.getElementById('canali').innerHTML = Object.entries(CANALI).map(([k, [nome, ic]]) =>
-    `<button class="canale ${P.canale === k ? 'on' : ''}" onclick="P.canale='${k}';disegnaRiepilogo()"><svg><use href="#${ic}"/></svg>${nome}</button>`).join('');
+  document.getElementById('canali').innerHTML = Object.entries(CANALI).map(([k, [nome, ic, , dett]]) =>
+    `<button class="canale ${P.canale === k ? 'on' : ''}" onclick="P.canale='${k}';disegnaRiepilogo()"><svg><use href="#${ic}"/></svg><span><b>${nome}</b><small>${dett}</small></span></button>`).join('');
   document.getElementById('salva').textContent = CANALI[P.canale][2];
   disegnaFoglio();
 }
-function disegnaFoglio() {
-  const o = calcolaOrdine(P), n = P.indice !== null ? P.indice + 40 : salvati.length + 40;
-  const fisso = o.righe.reduce((s, c) => s + c.fisso, 0);
+const numeroPrev = () => String(P.indice !== null ? P.indice + 40 : salvati.length + 40).padStart(4, '0');
+function pdfHTML() {
+  const o = calcolaOrdine(P), fisso = o.righe.reduce((s, c) => s + c.fisso, 0);
   const qualcunoStampato = P.righe.some(conStampa);
-  document.getElementById('foglio').innerHTML = `
-    <div class="intest"><b>Stamperia Demo</b><span>Preventivo n. ${String(n).padStart(4, '0')}<br>${new Date().toLocaleDateString('it-IT')}</span></div>
-    <div class="per">Per<b>${P.cliente ? P.cliente.replace(/</g, '&lt;') : '—'}</b></div>
-    <table>
-      ${P.righe.map((r, k) => { const c = o.righe[k]; return `
-        <tr class="capo-riga"><td><b>${nomeCapo(r)}</b><br><span class="dett">${conStampa(r) ? `Stampa ${TECNICHE[r.tecnica]}${r.tecnica === 'seri' ? ` ${r.colori} col.` : ''} · ${descrStampa(r)}` : tecnicheAttive().length ? 'Senza stampa' : ''}</span><br><span class="dett">${r.q} × ${euro(c.pezzo)}</span></td><td>${euro(c.pezzo * r.q)}</td></tr>`; }).join('')}
-      ${fisso ? `<tr><td>Telai serigrafia (una tantum)</td><td>${euro(fisso)}</td></tr>` : ''}
-    </table>
-    <div class="tot"><span>Totale IVA esclusa<br><span class="dett">${o.tot} pezzi</span></span><span class="num">${euro(o.totale)}</span></div>
-    <div class="iva">IVA 22% inclusa: ${euro(o.totale * 1.22)}</div>
-    <div class="piede">Valido 30 giorni${qualcunoStampato ? ' · Grafica fornita dal cliente' : ''}</div>`;
+  const oggi = new Date().toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+  const stampaDi = r => conStampa(r) ? `Stampa ${TECNICHE[r.tecnica]}${r.tecnica === 'seri' ? ` ${r.colori} col.` : ''} · ${descrStampa(r)}` : tecnicheAttive().length ? 'Senza stampa' : '';
+  return `<div class="pdf-testa"><div><div class="pdf-titolo">PREVENTIVO</div><div class="pdf-sotto">N. ${numeroPrev()} · ${oggi}</div></div>
+      <div class="pdf-ditta"><div><b>Stamperia Demo</b><small>Stampa su abbigliamento</small></div><span class="logo">SD</span></div></div>
+    <div class="pdf-per">Per: <b>${P.cliente ? P.cliente.replace(/</g, '&lt;') : '—'}</b></div>
+    <div class="pdf-sez">${P.righe.map((r, k) => { const c = o.righe[k]; return `<div class="pdf-r"><span class="pdf-img">${disegnoCapo(CAPI[r.capo])}</span>
+      <span class="pdf-nome"><b>${nomeCapo(r)}</b>${marcaCod(r) ? `<small>${marcaCod(r)}</small>` : ''}${stampaDi(r) ? `<small>${stampaDi(r)}</small>` : ''}</span>
+      <span class="pdf-imp"><small>${r.q} × ${euro(c.pezzo)}</small><span class="num">${euro(c.pezzo * r.q)}</span></span></div>`; }).join('')}
+    ${fisso ? `<div class="pdf-r"><span class="pdf-nome"><b>Telai serigrafia</b><small>una tantum</small></span><span class="pdf-imp"><span class="num">${euro(fisso)}</span></span></div>` : ''}</div>
+    <div class="pdf-tot"><span>Totale · ${o.tot} pezzi</span><span class="num">${euro(o.totale)}</span></div>
+    <div class="pdf-nota">IVA esclusa · con IVA 22%: ${euro(o.totale * 1.22)}</div>
+    <div class="pdf-nota">Valido 30 giorni${qualcunoStampato ? ' · Grafica fornita dal cliente' : ''}</div>`;
 }
+function disegnaFoglio() { document.getElementById('foglio').innerHTML = pdfHTML(); }
 function salva() {
   if (!P.cliente.trim()) { cliente.focus(); avviso('Scrivi il nome del cliente'); return; }
   const dati = { cliente: P.cliente.trim(), quando: Date.now(), righe: JSON.parse(JSON.stringify(P.righe)) };
   const n = String(P.indice !== null ? P.indice + 40 : salvati.length + 40).padStart(4, '0');
-  if (P.indice !== null) salvati[P.indice] = dati; else salvati.push(dati);
+  if (P.indice === null) P.indice = salvati.length;
+  salvati[P.indice] = dati;
   memorizza();
   // demo: niente WhatsApp, mail o file veri, solo l'anteprima di cosa riceverebbe il cliente
   ({ wa: anteprimaWA, mail: anteprimaMail, pdf: anteprimaPDF })[P.canale](n);
 }
-function righeTesto() {
-  const o = calcolaOrdine(P), fisso = o.righe.reduce((s, c) => s + c.fisso, 0);
-  return { o, righe: [
-    ...P.righe.map((r, k) => `• ${nomeCapo(r)} – ${r.q} pz × ${euro(o.righe[k].pezzo)} = ${euro(o.righe[k].pezzo * r.q)}` + (conStampa(r) ? `\n   Stampa ${TECNICHE[r.tecnica]}${r.tecnica === 'seri' ? ` ${r.colori} col.` : ''}: ${descrStampa(r)}` : '')),
-    ...(fisso ? [`• Telai serigrafia (una tantum): ${euro(fisso)}`] : []),
-  ] };
-}
+const nomePDF = n => `Preventivo-${n}-Stamperia-Demo.pdf`;
+const allegatoHTML = n => `<button class="allegato" data-apri-pdf><span class="pdf-ico">PDF</span><span><b>${nomePDF(n)}</b><small>1 pagina · PDF</small></span></button>`;
+const testoBreve = () => { const o = calcolaOrdine(P); return `Buongiorno, le invio il preventivo per ${o.tot} pezzi (${P.righe.map(r => CAPI[r.capo].nome).join(', ')}). Totale ${euro(o.totale)}, IVA esclusa.`; };
 function anteprimaWA(n) {
-  const { o, righe } = righeTesto();
-  const testo = [`*Preventivo n. ${n} – Stamperia Demo*`, `Per: ${P.cliente.trim()}`, '', ...righe, '', `*Totale: ${euro(o.totale)}* (IVA esclusa)`, 'Valido 30 giorni'].join('\n');
-  const html = testo.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\*([^*\n]+)\*/g, '<b>$1</b>');
+  // demo: niente WhatsApp vero; il messaggio porta il PDF allegato
   const ora = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-  document.getElementById('bollaWA').innerHTML = html + '<span class="ora">' + ora + ' ✓✓</span>';
+  document.getElementById('bollaWA').innerHTML = allegatoHTML(n) + testoBreve().replace(/</g, '&lt;') + '<span class="ora">' + ora + ' ✓✓</span>';
   document.getElementById('veloWA').classList.add('on');
 }
 function anteprimaMail(n) {
-  const { o, righe } = righeTesto();
   document.getElementById('aMail').textContent = P.cliente.trim();
   document.getElementById('oggettoMail').textContent = `Preventivo n. ${n} – Stamperia Demo`;
-  document.getElementById('corpoMail').textContent = ['Buongiorno,', 'le invio il preventivo richiesto.', '', ...righe, '', `Totale: ${euro(o.totale)} (IVA esclusa)`, 'Valido 30 giorni.', '', 'Cordiali saluti', 'Stamperia Demo'].join('\n');
+  document.getElementById('corpoMail').textContent = [testoBreve(), '', 'Trova il preventivo nel PDF allegato.', '', 'Cordiali saluti', 'Stamperia Demo'].join('\n');
+  document.getElementById('allegMail').innerHTML = allegatoHTML(n);
   document.getElementById('veloMail').classList.add('on');
 }
 function anteprimaPDF() {
-  document.getElementById('paginaPDF').innerHTML = document.getElementById('foglio').innerHTML;
+  document.getElementById('paginaPDF').innerHTML = pdfHTML();
   document.getElementById('veloPDF').classList.add('on');
 }
+// toccando l'allegato si vede il PDF
+document.addEventListener('click', e => {
+  if (!e.target.closest('[data-apri-pdf]')) return;
+  document.querySelectorAll('.velo.on').forEach(v => v.classList.remove('on'));
+  anteprimaPDF();
+});
 // chiudendo l'anteprima si torna al banco, dove il preventivo è già in lista
 function chiudiAnteprima() {
   if (!document.querySelector('.velo.on')) return;
@@ -921,7 +1017,7 @@ const campoDelta = (val, attr) => `<span class="prezzo-in"><input inputmode="tex
 function disegnaListino() {
   const c = document.getElementById('l-corpo');
   if (schedaL === 'capi') c.innerHTML = `<div class="tabella">${L.capi.map((x, i) => rigaL('capi', x, i, {
-      titolo: x.nome || 'Nuovo capo', sotto: x.modello, cosa: 'capo',
+      titolo: x.nome || 'Nuovo capo', sotto: (x.marca ? x.marca + ' · ' : '') + x.modello, cosa: 'capo',
       campi: `<input class="nome" id="m-capi-${i}" placeholder="Nome, es. Felpa" value="${esc(x.nome)}" oninput="L.capi[${i}].nome=this.value;segna('capi',${i},this)"><input class="nome" placeholder="Modello, es. Cappuccio 330 g" value="${esc(x.modello)}" oninput="L.capi[${i}].modello=this.value;segna('capi',${i},this)">`,
       destra: d => campoPrezzo(x.base, `${d} oninput="L.capi[${i}].base=leggi(this.value);segna('capi',${i},this)"`) })).join('')}</div>
     <button class="link" style="margin-top:12px" onclick="aggiungiRiga('capi')">+ Aggiungi capo</button>
